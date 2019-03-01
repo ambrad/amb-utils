@@ -1,10 +1,13 @@
 ;;; Collection of utils.
 
-(import sys)
+(import sys copy math os re)
+
+;;   when passing kwargs to another function like pl.plot, the dictionary should
+;; be like {'option value}, not {:option value}.
 
 (defmacro sdo [&rest code]
   "Scoped do. Just like do, but vars def'ed inside stay there."
-  `((fn () ~@code)))
+  `((fn [] ~@code)))
 
 (defmacro sv [&rest code]
   "The ultimate in laziness."
@@ -76,6 +79,10 @@
   `(do (setv ~x (+ ~x ~increment))
        ~x))
 
+(defmacro/g! dec! [x &optional [increment 1]]
+  `(do (setv ~x (- ~x ~increment))
+       ~x))
+
 (defmacro/g! case/test [op keyform &rest entries]
   "Case based on a test with op. Use :else as default action."
   `(do (setv ~g!keyform-result ~keyform)
@@ -102,25 +109,46 @@
   `(try (get ~@forms)
         (except [] None)))
 
+;; Use this instead of macroexpand to get output stripped of the Hy object
+;; ctors.
 (defn ppme [quoted-form]
-  (defn pr [&rest args] (print #*args :end ""))
-  (defn prl [e indent ldelim rdelim]
-    (prf "{:s}" ldelim)
-    (for [li e] (rec li (inc indent)))
-    (pr (* indent " "))
-    (prf "{:s}" rdelim))
-  (defn rec [e indent]
+  (sv sym-dict {} b (Box) b.sym-num 0
+      b.after-open True)
+  (defn sym [e]
+    (unless (in e sym-dict)
+      (assoc sym-dict e (.format "sym-{:d}" b.sym-num))
+      (inc! b.sym-num))
+    (get sym-dict e))
+  (defn prl [e ldelim rdelim]
+    (prfno "{:s}" (+ (if b.after-open "" " ") ldelim))
+    (sv b.after-open True)
+    (for [li e] (rec li))
+    (prfno "{:s}" rdelim))
+  (defn atom? [e]
+    (in "quote" (first e)))
+  (defn rec [e]
     (setv t (type e))
-    (pr (* indent " "))
-    (case/eq t
-             [HyExpression (prl e indent "(" ")")]
-             [HyList (prl e indent "[" "]")]
-             [:else (print e)]))
+    (case/in t
+             [[hy.models.HyFloat HyInteger] (print (+ " " (string e)) :end "")]
+             [[HyExpression]
+              (if (atom? e)
+                (for [li e] (rec li))
+                (prl e "(" ")"))]
+             [[HyList] (prl e "[" "]")]
+             [[HyString] (print (.format " \"{:s}\"" e) :end "")]
+             [:else
+              (unless b.after-open (print " " :end ""))
+              (sv b.after-open False)
+              (cond [(in "keyform" e)
+                     (print (sym e) :end "")]
+                    [(in "quote" e)
+                     (print "'" :end "")
+                     (sv b.after-open True)]
+                    [:else (print e :end "")])]))
   (setv h (macroexpand quoted-form))
   (print h)
-  (rec h 0))
-
-(dont ppme '(case/in 'hi (['hi 'bye] 'hi)))
+  (rec h)
+  (print))
 
 (defclass Box []
   "A box to hold values to be written in closures."
@@ -146,10 +174,13 @@
              b.foo-bar)
         3)
 
-(defn strleq (s ref)
+(defn strleq [s ref]
   (if (< (len s) (len ref))
     False
     (= (cut s 0 (len ref)) ref)))
+
+(defn mapl [fun &rest args]
+  (list (map fun #*args)))
 
 (defn assoc-nested [d keys val]
   "Associate in a nested dict, creating new sub-dicts as needed."
@@ -160,12 +191,17 @@
     (setv dn (get dn key)))
   (assoc dn (get keys -1) val))
 
+(defn assoc-nested-append [d keys val]
+  "Associate in a nested dict, creating new sub-dicts as needed. The value is
+  intended to be an item to go into a list. If the list exists, append to it; if
+  not, create it with the item as the only element."
+  (assoc-nested d keys (+ (or (geton d #*keys) []) [val])))
+
 ;; Very nice for writing .py files from C++ with data, and then running in a
 ;; parse/plot program to load the data.
 (defn get-python-mod [filename &optional [basedir ""]]
   "Return the module for basedir/filename."
   (defn get-module-basename [fn]
-    (import os)
     (setv name ((. os path basename) fn))
     (get (.split name ".") 0))
   (setv name (get-module-basename filename))
@@ -176,7 +212,6 @@
 
 ;; Set up the path so that os.* calls know where to find .so files.
 (defn set-ld-path []
-  (import os re)
   (setv (, _ stdout) (os.popen2 ". ~/sems/source.sh; env|grep LD_LIBRARY_PATH")
         paths (stdout.read)
         paths (cut paths (inc (.find paths "=")) -1)
@@ -200,10 +235,19 @@
 
 (defn sort [coll]
   "Functional sort."
-  (import copy)
   (setv c (copy.deepcopy coll))
   (.sort c)
   c)
+
+(defn find [e coll &optional [always-list False]]
+  (setv f [])
+  (for [i (range (len coll))]
+    (if (= e (get coll i))
+      (.append f i)))
+  (if (and (not always-list) (= 1 (len f))) (first f) f))
+
+(defn first-or-none [coll]
+  (if (empty? coll) None (first coll)))
 
 (defn safe-len [x]
   (try (len x) (except [] 1)))
@@ -236,8 +280,6 @@
      (prf "split-convert failed on:\n  {:s}\nlen ln {:d} len conversion {:d}"
           ln (len (.split ln)) (len conversion)))))
 
-(import copy math)
-
 (defn mean [coll]
   (/ (sum coll) (len coll)))
 
@@ -260,6 +302,21 @@
 
 (defn grep [pattern filename]
   (grep-str pattern (with [f (open filename "r")] (f.read))))
+
+(defn sed-str [pat-repls str]
+  (import re)
+  (for [pr pat-repls]
+    (sv str (re.sub (first pr) (second pr) str :flags re.MULTILINE)))
+  str)
+
+(defn sed [pat-repls file-in file-out]
+  (sv str (sed-str pat-repls (with [f (open file-in "r")] (f.read))))
+  (with [f (open file-out "w")] (f.write str)))
+
+(if-main
+ (sv s (sed-str (, (,"BAR" "yes") (, "FOO" "cow"))
+                "foo BAR FOO BAR\nBAR hold\nbar FOO moo"))
+ (expect s "foo yes cow yes\nyes hold\nbar cow moo"))
 
 (defn re-split-convert [converts pat ln]
   "Ex: (re-split-convert (, int float) regex ln)"
@@ -284,7 +341,8 @@
 (defn inp [name]
   (setv b (in name sys.argv))
   (when (or (and b (> *when-inp-verbosity* 0))
-            (> *when-inp-verbosity* 1))
+            (> *when-inp-verbosity* 1)
+            (= (len sys.argv) 1))
     (prf "{:s}: {:s}" (if b "DO" "av") name))
   b)
 
@@ -322,7 +380,8 @@
        (import amb)
        (setv ~g!b (in ~fn-name sys.argv))
        (when (or (and ~g!b (> amb.*when-inp-verbosity* 0))
-                 (> amb.*when-inp-verbosity* 1))
+                 (> amb.*when-inp-verbosity* 1)
+                 (= (len sys.argv) 1))
          (prf "{:s}: {:s}:{:s}" (if ~g!b "DO" "av")
               ~fn-name
               ~arg-str))
@@ -338,6 +397,20 @@
 (if-main
  (when-inp ["hi" {:bye int :aye float}] (print bye))
  (when-inp ["hello"] (print "hello")))
+
+(defn and-coll [pred coll]
+  (reduce (fn [accum e] (and accum (pred e))) coll True))
+
+(defn none-in [items coll]
+  (and-coll (fn [e] (not (in e coll))) items))
+
+(if-main
+  (expect (none-in (, "hi" "bye") "bye hello") False)
+  (expect (none-in (, "hi" "bye") "adieu hello"))
+  (expect (none-in '(1 2 3) (range 10)) False)
+  (expect (none-in '(1 2 3) (range 4 10)))
+  (expect (none-in (, "hi" "bye") ["bye" "hello"]) False)
+  (expect (none-in (, "hi" "bye") ["adieu" "hello"])))
 
 ;;; Numpy utils.
 
@@ -368,12 +441,13 @@
   (defn dbg-array->np-array [a m n]
     (npy.transpose (npy.reshape (npy.array a) (, n m))))
 
-  (defn reldif [a b]
+  (defn reldif [a b &optional [norm None]]
     (if (and (pod-number? a) (pod-number? b))
       (/ (abs (- a b)) (max (abs a) (abs b)))
       (sdo (setv aa (npy.array a)
                  ba (npy.array b))
-           (/ (npy.linalg.norm (- aa ba)) (npy.linalg.norm aa)))))
+           (/ (npy.linalg.norm (- aa ba) :ord norm)
+              (npy.linalg.norm aa :ord norm)))))
 
   (defn np-set-print []
     (setv float-format (fn [x]
@@ -452,6 +526,9 @@
 
   (defn s-all [] (slice None))
   (defn s-all-rev [] (slice None None -1))
+
+  (defn idx-arr [A rows cols]
+    (get (get A rows) (, (s-all) cols)))
 
   (defn antidiag [v]
     (get (npy.diag (get (npy.array v) (s-all-rev))) (s-all-rev)))
@@ -549,9 +626,23 @@
       (sv ticks ((. (get (. (pl.gca) --dict--) ax)
                     get-major-ticks)))
       (for [tick ticks]
-        ((. tick label set-fontsize) fs)))))
+        ((. tick label set-fontsize) fs))))
 
- (except [] ))
+  (defn make-reference-slope-triangle [x-span y-span slope pattern
+                                       &optional [kwargs-plot None]
+                                       [kwargs-text None]]
+    (assert (= 2 (len x-span)))
+    (assert (= 2 (len y-span)))
+    (svifn kwargs-plot {})
+    (svifn kwargs-text {})
+    (sv (, x0 x1) x-span (, y0 y1) y-span
+        dx (- x1 x0) dy (- y1 y0)
+        x [x0 x1 x0 x0] y [y0 y0 y1 y0])
+    (apply pl.plot [x y pattern] kwargs-plot)
+    (apply pl.text [(+ x0 (* 0.1 dx)) (+ y0 (* 0.1 dy)) (string slope)]
+           kwargs-text))
+
+  ) (except [] ))
 
 ;;; More extensive unit tests.
 
@@ -601,3 +692,19 @@
                ('(bye hello) 'nope)
                ([key] 'yup)))
  'yup)
+
+(if-main
+ (when-inp ["test-ppme"]
+   (ppme '(case/in 'hi
+                   (['hi 'bye] 'hi)
+                   ('[foo] (for [d dinos]
+                             (print (.format "{:s} goes {:d}"
+                                             d.name d.sound))))
+                   ('[bar]
+                     (defn axis-tight-pad [&optional [pad 0.05] [mult False]
+                                           [foo 3]]
+                       (pl.axis "tight")
+                       (setv xl (pl.xlim) yl (pl.ylim))
+                       (pl.xlim (pad-lim xl pad mult))
+                       (pl.ylim (pad-lim yl pad mult)))
+                     (axis-tight-pad))))))

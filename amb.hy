@@ -13,6 +13,8 @@
   "The ultimate in laziness."
   `(setv ~@code))
 
+(defn symbol [string] (HySymbol string))
+
 (defmacro svifn [var val]
   `(if (none? ~var) (sv ~var ~val)))
 
@@ -38,7 +40,7 @@
 
 (defmacro dont [&rest code]
   "No-op."
-  `((fn ())))
+  `((fn [])))
 
 (defmacro raisefmt [&rest args]
   `(raise (Exception (.format ~@args))))
@@ -109,6 +111,11 @@
   `(try (get ~@forms)
         (except [] None)))
 
+;; I want to switch to lfor in new code, but so old code doesn't break, provide
+;; list-comp, which was removed in Hy 0.15.
+(defmacro list-comp [transform range]
+  `(lfor ~(first range) ~(second range) ~transform))
+
 ;; Use this instead of macroexpand to get output stripped of the Hy object
 ;; ctors.
 (defn ppme [quoted-form]
@@ -158,14 +165,17 @@
 (defn has-field? [o field] (.has-key o.--dict-- field))
 (defn pod-number? [n] (in (type n) (, int long float)))
 (defn list? [coll] (= (type coll) list))
+(defn tuple? [coll] (= (type coll) tuple))
 (defn dict? [coll] (= (type coll) dict))
 
 (defmacro/g! box-slots [&rest slots]
   "Example: (setv hi 3 bye \"so long\" b (box-slots 'hi 'bye))"
   `(do (setv ~g!box (Box))
        ~@(map (fn [s]
-                (setv g!field (string (second s)) ; handles _ vs - in names
-                      g!value (second s))         ; inject symbol directly
+                ;;            handles _ vs - in names
+                (setv g!field ((. (string (second s)) replace) "-" "_")
+                      ;;      inject symbol directly
+                      g!value (second s))
                 `(assoc (. ~g!box --dict--) ~g!field ~g!value))
               slots)
        ~g!box))
@@ -233,11 +243,24 @@
              [(> a b) 1]
              [:else 0])))
 
+(defn sort! [coll]
+  "Functional sort."
+  (.sort coll)
+  coll)
+
 (defn sort [coll]
   "Functional sort."
   (setv c (copy.deepcopy coll))
-  (.sort c)
-  c)
+  (sort! c))
+
+
+(defn extend! [coll1 coll2]
+  (.extend coll1 coll2)
+  coll1)
+
+(defn extend [coll1 coll2]
+  (setv c (copy.deepcopy coll1))
+  (extend! c coll2))
 
 (defn find [e coll &optional [always-list False]]
   (setv f [])
@@ -296,6 +319,15 @@
   (/ (sum (map (fn [e] (** (- e mu) 2)) coll))
      (len coll)))
 
+(defn cross-prod [x y]
+  (defn one [i0 i1]
+    (- (* (get x i0) (get y i1)) (* (get x i1) (get y i0))))
+  [(one 1 2) (one 2 0) (one 0 1)])
+
+(defn readall [filename]
+  (with [f (open filename "r")]
+    (f.read)))
+
 (defn grep-str [pattern str]
   (import re)
   (re.findall (+ "(?:" pattern ").*") str :flags re.MULTILINE))
@@ -336,6 +368,15 @@
                     (math.log xfac)))))
   r)
 
+(defn single? [coll]
+  (or (not (coll? coll))
+      (= (len coll) 1)))
+
+(if-main
+  (expect (single? (, 'gauss)))
+  (expect (single? 'gauss))
+  (expect (not (single? (, 'sin 'gauss)))))
+
 (setv *when-inp-verbosity* 2)
 
 (defn inp [name]
@@ -364,7 +405,8 @@
       (.append alist
                `(setv
                  ;; grab "kw" from ":kw" and make it a symbol
-                 ~(HySymbol (cut (first e) 2))
+                 ;;~(HySymbol (cut (first e) 2))
+                 ~(HySymbol (name (first e)))
                  ;; apply type conversion
                  (try (~(second e) (get sys.argv (+ ~i 2)))
                       (except []
@@ -395,18 +437,26 @@
     `(sdo (when (inp ~fn-name) ~@body))))
 
 (if-main
- (when-inp ["hi" {:bye int :aye float}] (print bye))
+ (when-inp ["hi" {:bye int :aye float}] (print bye aye))
  (when-inp ["hello"] (print "hello")))
 
 (defn and-coll [pred coll]
   (reduce (fn [accum e] (and accum (pred e))) coll True))
 
+(defn or-coll [pred coll]
+  (reduce (fn [accum e] (or accum (pred e))) coll False))
+
 (defn none-in [items coll]
   (and-coll (fn [e] (not (in e coll))) items))
 
+(defn any-in [items coll]
+  (or-coll (fn [e] (in e coll)) items))
+
 (if-main
   (expect (none-in (, "hi" "bye") "bye hello") False)
+  (expect (any-in (, "hi" "bye") "bye hello"))
   (expect (none-in (, "hi" "bye") "adieu hello"))
+  (expect (any-in (, "hi" "bye") "adieu hello") False)
   (expect (none-in '(1 2 3) (range 10)) False)
   (expect (none-in '(1 2 3) (range 4 10)))
   (expect (none-in (, "hi" "bye") ["bye" "hello"]) False)
@@ -549,7 +599,7 @@
              :which "both")
     (.set_axisbelow (pl.gca) True))
 
-  (defn dispfig (&optional fn-prefix [format "pdf"] [tight True])
+  (defn dispfig [&optional fn-prefix [format "pdf"] [tight True]]
     (if tight (pl.tight_layout))
     (if (or (not fn_prefix) (empty? fn-prefix))
       (pl.show)

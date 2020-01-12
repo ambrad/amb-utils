@@ -83,16 +83,17 @@
   (interactive)
   (set-face-foreground `bold "lemonchiffon1")
   (set-face-foreground `font-lock-function-name-face "deep sky blue")
-  (set-face-foreground `font-lock-comment-face "gray66") ;light sea green") ;"indian red")
+  (set-face-foreground `font-lock-comment-face "sea green") ;"indian red")
   (set-face-foreground `font-lock-string-face "gray49") ; "DarkOrange3" "IndianRed1"
-  (set-face-foreground `font-lock-type-face "red")
+  (set-face-foreground `font-lock-type-face "DarkOrange3")
   (set-face-foreground `font-lock-keyword-face "forest green")
-  (set-face-foreground `font-lock-builtin-face "deep sky blue")
+  ;;(set-face-foreground `font-lock-builtin-face "deep sky blue")
+  (set-face-foreground `font-lock-builtin-face "forest green")
   (set-face-foreground `font-lock-constant-face "DodgerBlue1")
   (set-face-foreground `font-lock-variable-name-face "deep sky blue")
   (set-face-foreground `font-lock-negation-char-face "green")
   (set-background-color "black") ;bb
-  (set-face-foreground `default "white"))
+  (set-face-foreground `default "gray70"))
 (bg-black)
 
 ;(set-face-attribute 'comint-highlight-prompt nil :inherit nil)
@@ -118,7 +119,7 @@
 (fset 'previous-shell-command-line "\C-rl@\C-x")
 (global-set-key [f11] 'previous-shell-command-line)
 
-(fset 'toend [escape ?>]) (global-set-key [f5] 'toend)
+;(fset 'toend [escape ?>]) (global-set-key [f5] 'toend)
 (fset 'cdup "../") (global-set-key [f7] 'cdup)
 
 ;(global-set-key (kbd "M-[ d") `backward-word)
@@ -197,7 +198,7 @@ opposed to the function's use, easy."
 
 ;; I don't want to set this because text-mode is probably what I want most of
 ;; the time.
-;(setq auto-mode-alist (cons '("\\.txt\\'" . paragraph-indent-text-mode) auto-mode-alist))
+(setq auto-mode-alist (cons '("\\.txt\\'" . paragraph-indent-text-mode) auto-mode-alist))
 
 ;; completion window override
 (defun comint-close-completions ()
@@ -242,10 +243,11 @@ Dmitriy Igrishin's patched version of comint.el."
 
 ;;; fonts
 ;(set-default-font "-misc-fixed-medium-r-semicondensed-*-13-120-75-75-c-60-koi8-*")
-(add-to-list 'default-frame-alist '(font . "DejaVu Sans Mono-10"))
+;(add-to-list 'default-frame-alist '(font . "DejaVu Sans Mono-10"))
 ;; Useful:
 ;(print (font-family-list))
 ;(set-frame-font "DejaVu Sans Mono-10" t)
+(set-default-font "-PfEd-DejaVu Sans Mono-normal-normal-normal-*-15-*-*-*-m-0-fontset-startup")
 
 (setq default-frame-alist
       '((top . 0) (left . 99)
@@ -381,12 +383,15 @@ if there is only one visible window."
 (require 'autopair)
 (require 'paredit)
 (require 'rainbow-delimiters)
-(dolist (mh '(hy scheme lisp emacs-lisp inferior-lisp f90 c++))
+(dolist (mh '(hy scheme lisp emacs-lisp inferior-lisp inferior-scheme))
   (let ((hook-name (intern (concat (symbol-name mh) "-mode-hook"))))
     (add-hook hook-name '(lambda () (show-paren-mode 1) (autopair-mode)))
     (add-hook hook-name #'rainbow-delimiters-mode)))
 
 (add-hook 'c++-mode-hook #'rainbow-delimiters-mode)
+(add-hook 'c++-mode-hook #'autopair-mode)
+(add-hook 'f90-mode-hook #'rainbow-delimiters-mode)
+(add-hook 'f90-mode-hook #'autopair-mode)
 
 (global-set-key [f10] 'mark-sexp)
 (global-set-key [f9] 'mark-sexp)
@@ -394,6 +399,7 @@ if there is only one visible window."
 (global-set-key (kbd "M-r") 'raise-sexp)
 (global-set-key (kbd "M-t") 'transpose-sexps)
 (global-set-key (kbd "M-o") 'oneline)
+;;(global-set-key (kbd "M-o") 'reverse-args-interactive)
 (global-set-key (kbd "M-m") 'mark-sexp)
 (global-set-key (kbd "M-b") 'paredit-forward-barf-sexp)
 (global-set-key (kbd "M-s") 'paredit-forward-slurp-sexp)
@@ -403,9 +409,20 @@ if there is only one visible window."
 
 ;; Nice for debugging lisp in inferior-lisp.
 (global-set-key [Scroll_Lock down] 'paredit-forward-down)  ; 'lisp-eval-last-sexp
+(global-set-key (kbd "M-d") 'paredit-forward-down)
+(global-set-key (kbd "M-n") 'paredit-forward-up)
 (global-set-key [Scroll_Lock up] 'paredit-backward-up)
+(global-set-key (kbd "M-u") 'paredit-backward-up)
 (global-set-key [Scroll_Lock right] 'forward-sexp)
+(global-set-key (kbd "M-f") 'forward-sexp)
+(global-set-key (kbd "M-d") 'backward-sexp)
 (global-set-key [Scroll_Lock left] 'backward-sexp)
+
+(global-set-key (kbd "M-i")
+                #'(lambda ()
+                    (interactive)
+                    (paredit-backward-up)
+                    (forward-char) (insert-char ? ) (backward-char)))
 
 (defun pr (beg end)
   (interactive "r")
@@ -417,25 +434,21 @@ if there is only one visible window."
 (setq Buffer-menu-name-width 40)
 
 (custom-set-variables
- '(c-offsets-alist (quote ((innamespace . 0))))
+ '(c-offsets-alist (quote ((innamespace . 0) (inextern-lang . 0))))
  '(rainbow-delimiters-max-face-count 5))
 (if 1
     (custom-set-faces
-     '(rainbow-delimiters-depth-4-face ((t (:inherit rainbow-delimiters-base-face :foreground "light green"))))
-     '(rainbow-delimiters-depth-2-face ((t (:inherit rainbow-delimiters-base-face :foreground "deep sky blue"))))
-     '(rainbow-delimiters-depth-1-face ((t (:inherit rainbow-delimiters-base-face :foreground "medium orchid"))))
-     '(rainbow-delimiters-depth-3-face ((t (:inherit rainbow-delimiters-base-face :foreground "orange red"))))
-     '(rainbow-delimiters-depth-5-face ((t (:inherit rainbow-delimiters-base-face :foreground "IndianRed1")))))
+     '(rainbow-delimiters-depth-4-face ((t (:inherit rainbow-delimiters-base-face :foreground "dark green"))))
+     '(rainbow-delimiters-depth-2-face ((t (:inherit rainbow-delimiters-base-face :foreground "dark olive green"))))
+     '(rainbow-delimiters-depth-1-face ((t (:inherit rainbow-delimiters-base-face :foreground "chocolate4"))))
+     '(rainbow-delimiters-depth-3-face ((t (:inherit rainbow-delimiters-base-face :foreground "saddle brown"))))
+     '(rainbow-delimiters-depth-5-face ((t (:inherit rainbow-delimiters-base-face :foreground "dark olive green")))))
   (custom-set-faces
-     '(rainbow-delimiters-depth-1-face ((t (:inherit rainbow-delimiters-base-face :foreground "gray21"))))
-     '(rainbow-delimiters-depth-2-face ((t (:inherit rainbow-delimiters-base-face :foreground "gray31"))))
-     '(rainbow-delimiters-depth-3-face ((t (:inherit rainbow-delimiters-base-face :foreground "gray51"))))
-     '(rainbow-delimiters-depth-4-face ((t (:inherit rainbow-delimiters-base-face :foreground "gray71"))))
-     '(rainbow-delimiters-depth-5-face ((t (:inherit rainbow-delimiters-base-face :foreground "gray91"))))
-     '(rainbow-delimiters-depth-6-face ((t (:inherit rainbow-delimiters-base-face :foreground "gray81"))))
-     '(rainbow-delimiters-depth-7-face ((t (:inherit rainbow-delimiters-base-face :foreground "gray61"))))
-     '(rainbow-delimiters-depth-8-face ((t (:inherit rainbow-delimiters-base-face :foreground "gray41"))))
-     '(rainbow-delimiters-depth-9-face ((t (:inherit rainbow-delimiters-base-face :foreground "gray21"))))))
+     '(rainbow-delimiters-depth-1-face ((t (:inherit rainbow-delimiters-base-face :foreground "SlateBlue3"))))
+     '(rainbow-delimiters-depth-2-face ((t (:inherit rainbow-delimiters-base-face :foreground "MediumPurple3"))))
+     '(rainbow-delimiters-depth-3-face ((t (:inherit rainbow-delimiters-base-face :foreground "MediumOrchid3"))))
+     '(rainbow-delimiters-depth-4-face ((t (:inherit rainbow-delimiters-base-face :foreground "orchid4"))))
+     '(rainbow-delimiters-depth-5-face ((t (:inherit rainbow-delimiters-base-face :foreground "purple3"))))))
 
 (fset 'save-and-run-in-other
       [?\C-x ?\C-s ?\C-x ?o ?\M-> ?\M-p return ?\C-x ?o])
@@ -445,3 +458,20 @@ if there is only one visible window."
 
 (global-set-key [f6] 'save-buffer)
 (global-set-key [f5] 'other-window)
+
+;; slime
+(if nil
+    (progn
+      (add-to-list 'load-path "~/stage/slime-2.22")
+      (require 'slime-autoloads)
+      (setq inferior-lisp-program "sbcl")))
+
+(if 1
+    (progn
+      (setq scheme-program-name "guile")
+      (fset 'send-last-sexp [?\C-x ?\C-e])
+      (global-set-key [f8] 'send-last-sexp)))
+
+(setq display-time-default-load-average nil)
+(setq display-time-mail-file 0)
+(display-time)

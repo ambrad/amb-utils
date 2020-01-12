@@ -1,5 +1,6 @@
 ;;; Collection of utils.
 
+;;(require [hy.contrib.walk [let]])
 (import sys copy math os re)
 
 ;;   when passing kwargs to another function like pl.plot, the dictionary should
@@ -164,6 +165,7 @@
 (defn class? [o] (= (type o) (type (Box))))
 (defn has-field? [o field] (.has-key o.--dict-- field))
 (defn pod-number? [n] (in (type n) (, int long float)))
+(defn pod-or-len [n] (if (pod-number? n) n (len n)))
 (defn list? [coll] (= (type coll) list))
 (defn tuple? [coll] (= (type coll) tuple))
 (defn dict? [coll] (= (type coll) dict))
@@ -302,6 +304,8 @@
    (except []
      (prf "split-convert failed on:\n  {:s}\nlen ln {:d} len conversion {:d}"
           ln (len (.split ln)) (len conversion)))))
+
+(defn cc [x] (* 0.5 (+ (cut x 0 -1) (cut x 1))))
 
 (defn mean [coll]
   (/ (sum coll) (len coll)))
@@ -466,10 +470,26 @@
 
 (try
  (do
-  (import [numpy :as npy])
+  (import [numpy :as npy] ctypes)
 
   (defn array-range [&rest args]
     (npy.array (list (apply range args)) :dtype int))
+
+  (defn array-if-not [A &optional [dtype float]]
+    (unless (= (type A) npy.ndarray)
+      (npy.array A :dtype float)))
+
+  (defn as-ctypes [x]
+    (npy.ctypeslib.as-ctypes x))
+
+  (defn vectorize [A] (npy.reshape A A.size))
+  (defn row-vec [v] (npy.reshape v (, 1 v.size)))
+  (defn col-vec [v] (npy.reshape v (, v.size 1)))
+  (defn vector? [v]
+    (or (and (= (len v.shape) 2) (= (min v.shape) 1))
+        (= (len v.shape) 1)))
+  (defn ones-row-vec [n] (npy.ones (, 1 (pod-or-len n))))
+  (defn ones-col-vec [n] (npy.ones (, (pod-or-len n) 1)))
 
   (defn sort-with-p [ai]
     "Return sorted ai and permutation array. Each entry of a must have the same

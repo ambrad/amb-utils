@@ -25,3 +25,24 @@
                (apply #'concat splst))))
     (kill-region beg end)
     (insert (if (> (length str) 0) (substring str 1) str))))
+
+;; from https://www.emacswiki.org/emacs/ElispCookbook#toc6
+(defun chomp (str)
+  "Chomp leading and tailing whitespace from STR."
+  (while (string-match "\\`\n+\\|^\\s-+\\|\\s-+$\\|\n+\\'"
+                       str)
+    (setq str (replace-match "" t t str)))
+  str)
+
+(defun reverse-args (string)
+  (let* ((s (reverse (split-string string ",")))
+         (out (chomp (car s))))
+    (dolist (e (cdr s))
+      (setf out (concat out "," (chomp e))))
+    out))
+
+(defun reverse-args-interactive (beg end)
+  (interactive "r")
+  (let ((str (filter-buffer-substring beg end)))
+    (kill-region beg end)
+    (insert (reverse-args str))))

@@ -102,24 +102,25 @@
       d (organize-daily data)
       soi ["CA" "AZ" "NM" "CO" "IL" "LA" "NY"]
       clrs "krgbmcy")
-  (for [yax (range 2)]
-    (sv namelo (, "daily" "cumulative")
-        nameup (, "Daily" "Cumulative"))
+  (for [yax (range 3)]
+    (sv namelo (, "daily" "cumulative" "cumulative-abs")
+        nameup (, "Daily" "Cumulative" "Cumulative")
+        permil (< yax 2))
     (with [(pl-plot (, 6 9) (.format "fig/p1-{}" (get namelo yax)) :format format)]
       (for [row (range 3)]
         (pl.subplot 3 1 (inc row))
         (for [(, i state) (enumerate soi)]
           (sv e (get d state)
-              x (case/eq yax [0 (cut (:date e) 1)] [1 (:date e)])
+              x (case/in yax [(, 0) (cut (:date e) 1)] [(, 1 2) (:date e)])
               clr (get clrs (% i (len clrs)))
-              fac (/ 1e6 (get-state-pop state))
+              fac (if permil (/ 1e6 (get-state-pop state)) 1)
               y (get e (get (, :testcum :poscum :deadcum) row))
-              y (case/eq yax [0 (npy.diff y)] [1 y])
+              y (case/in yax [(, 0) (npy.diff y)] [(, 1 2) y])
               pat "-")
           (pl.semilogy x (* fac y) (+ clr pat) :label state))
         (pl.title (+ (get nameup yax) " "
                      (get (, "tests" "positive" "deaths") row)
-                     " per million people"))
+                     (if permil " per million people" "")))
         (my-grid)
         (when (zero? row) (pl.legend :loc "best"))
         (when (= row 2) (pl.xlabel "Day of year"))))))

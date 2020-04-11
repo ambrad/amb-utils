@@ -87,9 +87,9 @@
       data (parse-daily fname)
       d (organize-daily data))
   (print (cut data 0 1))
-  (print (get d "CA"))
+  (print (get d "WI"))
   (with [(pl-plot (, 6 6) "fig/test")]
-    (sv e (get d "IL")
+    (sv e (get d "WI")
         x (cut (:date e) 1))
     (pl.semilogy x (npy.diff (:testcum e)) "k:"
                  x (npy.diff (:poscum e)) "k--"
@@ -108,7 +108,7 @@
         permil (< yax 2))
     (with [(pl-plot (, 6 9) (.format "fig/p1-{}" (get namelo yax)) :format format)]
       (for [row (range 3)]
-        (pl.subplot 3 1 (inc row))
+        (sv ax (pl.subplot 3 1 (inc row)))
         (for [(, i state) (enumerate soi)]
           (sv e (get d state)
               x (case/in yax [(, 0) (cut (:date e) 1)] [(, 1 2) (:date e)])
@@ -123,4 +123,6 @@
                      (if permil " per million people" "")))
         (my-grid)
         (when (zero? row) (pl.legend :loc "best"))
-        (when (= row 2) (pl.xlabel "Day of year"))))))
+        (when (= row 2)
+          (pl.xlabel "Day of year")
+          (pl.text 0.7 -0.25 "Updated 10 April 2020" :transform ax.transAxes))))))

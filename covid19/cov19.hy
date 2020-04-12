@@ -100,6 +100,19 @@
                  x (npy.diff (:deadcum e)) "k-")
     (my-grid)))
 
+(defn semilogy-filter-drops [x y pat label]
+  (cond [(npy.any (= y 0))
+         (sv s 0 e 0)
+         (while (< s (len x))
+           (while (and (< e (len x)) (> (get y e) 0)) (inc! e))
+           (when (= s e) (inc! s) (inc! e) (continue))
+           (if (> e (inc s))
+               (do (pl.semilogy (cut x s e) (cut y s e) pat :label label)
+                   (sv label None))
+               (pl.semilogy (cut x s e) (cut y s e) (+ (first pat) "o")))
+           (sv s e))]
+        [:else (pl.semilogy x y pat :label label)]))
+
 (when-inp ["p1" {:format string}]
   (sv fname "daily.json"
       data (parse-daily fname)
@@ -115,13 +128,14 @@
         (sv ax (pl.subplot 3 1 (inc row)))
         (for [(, i state) (enumerate soi)]
           (sv e (get d state)
-              x (case/in yax [(, 0) (cut (:date e) 1)] [(, 1 2) (:date e)])
+              x (:date e)
               clr (get clrs (% i (len clrs)))
               fac (if permil (/ 1e6 (get-state-pop state)) 1)
-              y (get e (get (, :testcum :poscum :deadcum) row))
-              y (case/in yax [(, 0) (npy.diff y)] [(, 1 2) y])
+              y (case/in yax
+                         [(, 0) (get e (get (, :testinc :posinc :deadinc) row))]
+                         [(, 1 2) (get e (get (, :testcum :poscum :deadcum) row))])
               pat "-")
-          (pl.semilogy x (* fac y) (+ clr pat) :label state))
+          (semilogy-filter-drops x (* fac y) (+ clr pat) state))
         (pl.title (+ (get nameup yax) " "
                      (get (, "tests" "positive" "deaths") row)
                      (if permil " per million people" "")))

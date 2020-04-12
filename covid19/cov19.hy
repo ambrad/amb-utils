@@ -40,23 +40,27 @@
 
 (defn organize-daily [din]
   (sv d {}
-      states (list (set (list-comp (str (get e "state")) [e din]))))
-  (for [state states]
-    (assoc d state {:date [] :deadcum [] :poscum [] :testcum []}))
+      states (list (set (list-comp (str (get e "state")) [e din])))
+      keys (, :date :hospcur :deadcum :deadinc :poscum :posinc :testcum :testinc)
+      strs (, "date" "hospitalizedCurrently" "death" "deathIncrease" "positive"
+              "positiveIncrease" "totalTestResults" "totalTestResultsIncrease"))
+  (for [state states
+        key keys]
+    (sv e {})
+    (for [k keys] (assoc e k []))
+    (assoc d state e))
   (for [e din]
-    (try
-      (do
-        (sv s (get d (get e "state"))
-            date (get e "date")
-            hospcum (get e "hospitalizedCumulative")
-            deadcum (get e "death")
-            poscum (get e "positive")
-            testcum (get e "totalTestResults"))
-        (.append (:date s) date)
-        (.append (:deadcum s) deadcum)
-        (.append (:poscum s) poscum)
-        (.append (:testcum s) testcum))
-      (except [])))
+    (sv fnd True)
+    (for [s strs]
+      (unless (in s e)
+        (sv fnd False)
+        (break)))
+    (unless fnd (continue))
+    ;; still here, so have all fields
+    (sv s (get d (get e "state")))
+    (for [i (range (len keys))]
+      (.append (get s (get keys i))
+               (get e (get strs i)))))
   (for [state (.keys d)]
     (sv d1 (get d state)
         date (list-comp (date->doy e) [e (:date d1)])
@@ -125,4 +129,4 @@
         (when (= row 2)
           (pl.legend :loc "best")
           (pl.xlabel "Day of year")
-          (pl.text 0.7 -0.25 "Updated 10 April 2020" :transform ax.transAxes))))))
+          (pl.text 0.7 -0.25 "Updated 12 April 2020" :transform ax.transAxes))))))

@@ -67,7 +67,10 @@
         (get d1 :date) date
         (, date p) (sort-with-p date))
     (for [f (.keys d1)]
-      (assoc d1 f (get (npy.array (get d1 f)) p))))
+      (sv y (npy.array (get d1 f))
+          none-mask (= y None)
+          (get y none-mask) 0)
+      (assoc d1 f (get y p))))
   d)
 
 (sv *state-pop* (parse-pop))
@@ -123,24 +126,28 @@
     (sv namelo (, "daily" "cumulative" "cumulative-abs")
         nameup (, "Daily" "Cumulative" "Cumulative")
         permil (< yax 2))
-    (with [(pl-plot (, 6 9) (.format "fig/p1-{}" (get namelo yax)) :format format)]
-      (for [row (range 3)]
-        (sv ax (pl.subplot 3 1 (inc row)))
+    (with [(pl-plot (, 6 (if (zero? yax) 12 9))
+                    (.format "fig/p1-{}" (get namelo yax)) :format format)]
+      (sv nrow (if (zero? yax) 4 3))
+      (for [row (range nrow)]
+        (sv ax (pl.subplot nrow 1 (inc row)))
         (for [(, i state) (enumerate soi)]
           (sv e (get d state)
               x (:date e)
               clr (get clrs (% i (len clrs)))
               fac (if permil (/ 1e6 (get-state-pop state)) 1)
               y (case/in yax
-                         [(, 0) (get e (get (, :testinc :posinc :deadinc) row))]
+                         [(, 0) (get e (get (, :testinc :posinc :deadinc :hospcur) row))]
                          [(, 1 2) (get e (get (, :testcum :poscum :deadcum) row))])
               pat "-")
           (semilogy-filter-drops x (* fac y) (+ clr pat) state))
-        (pl.title (+ (get nameup yax) " "
-                     (get (, "tests" "positive" "deaths") row)
+        (pl.title (+ (if (= row 3) 
+                         "Currently hospitalized"
+                         (+ (get nameup yax) " "
+                            (get (, "tests" "positive" "deaths") row)))
                      (if permil " per million people" "")))
         (my-grid)
-        (when (= row 2)
+        (when (= row 0)
           (pl.legend :loc "best")
           (pl.xlabel "Day of year")
-          (pl.text 0.7 -0.25 "Updated 12 April 2020" :transform ax.transAxes))))))
+          (pl.text 0.7 1.12 "Updated 12 April 2020" :transform ax.transAxes))))))

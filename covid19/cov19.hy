@@ -124,7 +124,7 @@
       clrs "krgbmcy")
   (for [yax (range 3)]
     (sv namelo (, "daily" "cumulative" "cumulative-abs")
-        nameup (, "Daily" "Cumulative" "Cumulative")
+        nameup (, "Daily new" "Cumulative" "Cumulative")
         permil (< yax 2))
     (with [(pl-plot (, 6 (if (zero? yax) 12 9))
                     (.format "fig/p1-{}" (get namelo yax)) :format format)]
@@ -149,5 +149,6 @@
         (my-grid)
         (when (= row 0)
           (pl.legend :loc "best")
-          (pl.xlabel "Day of year")
-          (pl.text 0.7 1.12 "Updated 12 April 2020" :transform ax.transAxes))))))
+          (pl.text 0.7 1.12 "Updated 12 April 2020" :transform ax.transAxes))
+        (when (= row (dec nrow))
+          (pl.xlabel "Day of year"))))))

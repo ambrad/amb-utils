@@ -3,9 +3,6 @@
 (require [amb [*]])
 (import [amb [*]] json)
 
-(defn join-strs [coll]
-  (reduce (fn [acc e] (+ acc (if (empty? acc) "" " ") e)) coll ""))
-
 (defn scan [f coll init]
   (sv out [] acc init)
   (for [e coll]
@@ -21,8 +18,9 @@
     (when (empty? ln) (continue))
     (when (= (first ln) "#") (continue))
     (sv toks (.split ln "\t")
-        state (str (join-strs (cut toks 0 -1)))
+        state (first toks)
         pop (int (last toks)))
+    (assert (= (len toks) 2))
     (assoc d state pop))
   d)
 
@@ -150,7 +148,7 @@
         (when (= row 0)
           (sv xl (pl.xlim))
           (pl.legend :loc "best")
-          (pl.text 0.7 1.12 "Updated 12 April 2020" :transform ax.transAxes))
+          (pl.text 0.7 1.12 "Updated 13 April 2020" :transform ax.transAxes))
         (when (= row (dec nrow))
           (pl.xlabel "Day of year"))
         (when (= row 3)

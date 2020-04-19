@@ -148,7 +148,7 @@
         (when (= row 0)
           (sv xl (pl.xlim))
           (when (= nrow 3) (pl.legend :loc "best"))
-          (pl.text 0.7 1.12 "Updated 18 April 2020" :transform ax.transAxes))
+          (pl.text 0.7 1.12 "Updated 19 April 2020" :transform ax.transAxes))
         (when (= row (dec nrow))
           (pl.xlabel "Day of year"))
         (when (= row 3)

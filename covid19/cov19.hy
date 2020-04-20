@@ -28,11 +28,12 @@
   (with [fp (open fname "r")]
     (json.load fp)))
 
-(defn date->doy [date]
+(defn date->doy [date &optional [has-dash False]]
   (sv s (string date)
-      yr (int (cut s 0 4))
-      mo (int (cut s 4 6))
-      da (int (cut s 6 8))
+      pos (if has-dash [0 4 5 7 8 10] [0 4 4 6 6 8])
+      yr (int (cut s (get pos 0) (get pos 1)))
+      mo (int (cut s (get pos 2) (get pos 3)))
+      da (int (cut s (get pos 4) (get pos 5)))
       adpm (scan (fn [acc e] (+ acc e)) [0 31 29 31 30 31 30] 0))
   (+ (* (get adpm (dec mo))) da))
 
@@ -133,13 +134,36 @@
         (when (= row 3)
           (pl.xlim xl))))))
 
+(defn parse-county-data []
+  (sv filename "covid-19-data/us-counties.csv"
+      d {})
+  (with [f (open filename "r")]
+    (.readline f)
+    (while True
+      (sv ln (.readline f))
+      (when (empty? ln) (break))
+      (try
+        (sv (, date county state fips cases deaths) (.split ln ",")
+            doy (date->doy date True)
+            cases (int cases) deaths (int deaths))
+        (except []
+          (continue)))
+      (unless (and (in state d) (in county (get d state)))
+        (assoc-nested d (, state county) {:date [] :case [] :death []}))
+      (.append (get d state county :date) doy)
+      (.append (get d state county :case) cases)
+      (.append (get d state county :death) deaths)))
+  d)
+
 (when-inp ["dev-pop"]
   (sv pop (parse-pop))
   (print pop))
 
 (when-inp ["dev-doy"]
   (for [e [20200111 20200211 20200311 20200411]]
-    (print e (date->doy e))))
+    (print e (date->doy e)))
+  (for [e ["2020-01-11" "2020-02-11" "2020-03-11" "2020-04-11"]]
+    (print e (date->doy e True))))
 
 (when-inp ["dev-daily"]
   (sv fname "daily.json"
@@ -160,3 +184,11 @@
 
 (when-inp ["p1a" {:format string}]
   (run-p1 ["WA" "FL" "WI" "MI" "IL" "NJ" "MA"] format))
+
+(when-inp ["dev-county"]
+  (sv d (parse-county-data))
+  (print (get d "Illinois" "Cook"))
+  (print (get d "Arizona" "Maricopa"))
+  (print (get d "New Mexico" "Bernalillo"))
+  (print (get d "California" "Orange"))
+  (print (get d "Colorado" "Boulder")))

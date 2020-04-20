@@ -5,7 +5,7 @@
 <p>World of Data plots I find particularly informative:
 <p><a href="https://ourworldindata.org/grapher/total-deaths-covid-19?yScale=log&country=COUNTRIES">Cumulative deaths</a>
 <p><a href="https://ourworldindata.org/grapher/total-covid-deaths-per-million?tab=chart&yScale=log&country=COUNTRIES">Cumulative deaths per million people</a>
-<p><a href="https://ourworldindata.org/grapher/daily-deaths-covid-19?tab=chart&yScale=log&country=COUNTRIES">Daily new deaths per million people</a>
+<p><a href="https://ourworldindata.org/grapher/daily-deaths-covid-19?tab=chart&yScale=log&country=COUNTRIES">Daily new deaths</a>
 <p><a href="https://ourworldindata.org/grapher/new-covid-deaths-per-million?tab=chart&yScale=log&country=COUNTRIES">Daily new deaths per million people</a>
 <p><a href="https://ourworldindata.org/grapher/total-cases-covid-19?tab=chart&yScale=log&country=COUNTRIES">Cumulative cases</a>
 <p><a href="https://ourworldindata.org/grapher/daily-cases-covid-19?tab=chart&yScale=log&country=COUNTRIES">Daily new cases</a>

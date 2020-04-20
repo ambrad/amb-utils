@@ -75,31 +75,11 @@
 
 (defn get-state-pop [abbrev]
   (sv state (get {"IL" "Illinois" "CA" "California" "NY" "New York" "NM" "New Mexico"
-                  "AZ" "Arizona" "CO" "Colorado" "LA" "Louisiana"}
+                  "AZ" "Arizona" "CO" "Colorado" "LA" "Louisiana" "FL" "Florida"
+                  "MA" "Massachusetts" "NJ" "New Jersey" "WA" "Washington"
+                  "WI" "Wisconsin" "MI" "Michigan"}
                  abbrev))
   (get *state-pop* state))
-
-(when-inp ["dev-pop"]
-  (sv pop (parse-pop))
-  (print pop))
-
-(when-inp ["dev-doy"]
-  (for [e [20200111 20200211 20200311 20200411]]
-    (print e (date->doy e))))
-
-(when-inp ["dev-daily"]
-  (sv fname "daily.json"
-      data (parse-daily fname)
-      d (organize-daily data))
-  (print (cut data 0 1))
-  (print (get d "WI"))
-  (with [(pl-plot (, 6 6) "fig/test")]
-    (sv e (get d "WI")
-        x (cut (:date e) 1))
-    (pl.semilogy x (npy.diff (:testcum e)) "k:"
-                 x (npy.diff (:poscum e)) "k--"
-                 x (npy.diff (:deadcum e)) "k-")
-    (my-grid)))
 
 (defn semilogy-filter-drops [x y pat label]
   (cond [(npy.any (= y 0))
@@ -114,11 +94,10 @@
            (sv s e))]
         [:else (pl.semilogy x y pat :label label)]))
 
-(when-inp ["p1" {:format string}]
+(defn run-p1 [soi format]
   (sv fname "daily.json"
       data (parse-daily fname)
       d (organize-daily data)
-      soi ["CA" "AZ" "NM" "CO" "IL" "LA" "NY"]
       clrs "krgbmcy")
   (for [yax (range 3)]
     (sv namelo (, "daily" "cumulative" "cumulative-abs")
@@ -147,10 +126,37 @@
         (my-grid)
         (when (= row 0)
           (sv xl (pl.xlim))
-          (when (= nrow 3) (pl.legend :loc "best"))
+          (pl.legend :loc "best")
           (pl.text 0.7 1.12 "Updated 19 April 2020" :transform ax.transAxes))
         (when (= row (dec nrow))
           (pl.xlabel "Day of year"))
         (when (= row 3)
-          (pl.legend :loc "best")
           (pl.xlim xl))))))
+
+(when-inp ["dev-pop"]
+  (sv pop (parse-pop))
+  (print pop))
+
+(when-inp ["dev-doy"]
+  (for [e [20200111 20200211 20200311 20200411]]
+    (print e (date->doy e))))
+
+(when-inp ["dev-daily"]
+  (sv fname "daily.json"
+      data (parse-daily fname)
+      d (organize-daily data))
+  (print (cut data 0 1))
+  (print (get d "WI"))
+  (with [(pl-plot (, 6 6) "fig/test")]
+    (sv e (get d "WI")
+        x (cut (:date e) 1))
+    (pl.semilogy x (npy.diff (:testcum e)) "k:"
+                 x (npy.diff (:poscum e)) "k--"
+                 x (npy.diff (:deadcum e)) "k-")
+    (my-grid)))
+
+(when-inp ["p1" {:format string}]
+  (run-p1 ["CA" "AZ" "NM" "CO" "IL" "LA" "NY"] format))
+
+(when-inp ["p1a" {:format string}]
+  (run-p1 ["WA" "FL" "WI" "MI" "IL" "NJ" "MA"] format))

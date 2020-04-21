@@ -128,7 +128,7 @@
         (when (= row 0)
           (sv xl (pl.xlim))
           (pl.legend :loc "best")
-          (pl.text 0.7 1.12 "Updated 19 April 2020" :transform ax.transAxes))
+          (pl.text 0.7 1.12 "Updated 20 April 2020" :transform ax.transAxes))
         (when (= row (dec nrow))
           (pl.xlabel "Day of year"))
         (when (= row 3)
@@ -185,10 +185,47 @@
 (when-inp ["p1a" {:format string}]
   (run-p1 ["WA" "FL" "WI" "MI" "IL" "NJ" "MA"] format))
 
+(sv *counties* (, (, "California" "Orange" 3185968)
+                  (, "Arizona" "Maricopa" 4485414)
+                  (, "New Mexico" "Bernalillo" 679121)
+                  (, "Colorado" "Boulder" 326196)
+                  (, "Illinois" "Cook" 5150233)))
+
 (when-inp ["dev-county"]
-  (sv d (parse-county-data))
-  (print (get d "Illinois" "Cook"))
-  (print (get d "Arizona" "Maricopa"))
-  (print (get d "New Mexico" "Bernalillo"))
-  (print (get d "California" "Orange"))
-  (print (get d "Colorado" "Boulder")))
+  (sv d (parse-county-data)
+      coi *counties*)
+  (for [i (range (len coi))]
+    (sv e (get coi i))
+    (print (get d (first e) (second e)))))
+
+(when-inp ["plot-county-data"]
+  (sv d (parse-county-data)
+      coi *counties*
+      clrs "krgbmcy")
+  (for [(, im measure) (enumerate (, "daily" "cumulative"))]
+    (with [(pl-plot (, 12 6) (+ "fig/county-" measure) :format "png")]
+      (for [row (range 2)
+            col (range 2)]
+        (sv idx (inc (+ (* 2 row) col)))
+        (pl.subplot 2 2 idx)
+        (for [(, ic county) (enumerate coi)]
+          (sv dc (get d (first county) (second county))
+              pop (last county)
+              x (npy.array (:date dc))
+              y (* (npy.array ((if (zero? row) :case :death) dc))
+                   (if (= col 1) (/ 1e6 pop) 1)))
+          (when (zero? im)
+            (sv x (cut x 1)
+                y (npy.diff y)))
+          (pl.semilogy x y (get clrs ic) :label (second county)))
+        (my-grid)
+        (sv xl (pl.xlim))
+        (pl.xlim 70 (second xl))
+        (pl.title (+ (if (zero? im)
+                         "Daily new"
+                         "Cumulative")
+                     " "
+                     (get (, "cases" "cases per million"
+                             "deaths" "deaths per million") (dec idx))))
+        (when (= row 1) (pl.xlabel "Day of Year"))
+        (when (= idx 3) (pl.legend :loc "best"))))))

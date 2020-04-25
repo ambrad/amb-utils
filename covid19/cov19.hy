@@ -78,7 +78,7 @@
   (sv state (get {"IL" "Illinois" "CA" "California" "NY" "New York" "NM" "New Mexico"
                   "AZ" "Arizona" "CO" "Colorado" "LA" "Louisiana" "FL" "Florida"
                   "MA" "Massachusetts" "NJ" "New Jersey" "WA" "Washington"
-                  "WI" "Wisconsin" "MI" "Michigan"}
+                  "WI" "Wisconsin" "MI" "Michigan" "GA" "Georgia" "PA" "Pennsylvania"}
                  abbrev))
   (get *state-pop* state))
 
@@ -95,7 +95,7 @@
            (sv s e))]
         [:else (pl.semilogy x y pat :label label)]))
 
-(defn run-p1 [soi format]
+(defn run-p1 [soi filename format]
   (sv fname "daily.json"
       data (parse-daily fname)
       d (organize-daily data)
@@ -105,7 +105,7 @@
         nameup (, "Daily new" "Cumulative" "Cumulative")
         permil (< yax 2))
     (with [(pl-plot (, 6 (if (zero? yax) 12 9))
-                    (.format "fig/p1-{}" (get namelo yax)) :format format)]
+                    (.format "fig/{}-{}" filename (get namelo yax)) :format format)]
       (sv nrow (if (zero? yax) 4 3))
       (for [row (range nrow)]
         (sv ax (pl.subplot nrow 1 (inc row)))
@@ -128,7 +128,7 @@
         (when (= row 0)
           (sv xl (pl.xlim))
           (pl.legend :loc "best")
-          (pl.text 0.7 1.12 "Updated 20 April 2020" :transform ax.transAxes))
+          (pl.text 0.7 1.12 "Updated 24 April 2020" :transform ax.transAxes))
         (when (= row (dec nrow))
           (pl.xlabel "Day of year"))
         (when (= row 3)
@@ -180,16 +180,17 @@
     (my-grid)))
 
 (when-inp ["p1" {:format string}]
-  (run-p1 ["CA" "AZ" "NM" "CO" "IL" "LA" "NY"] format))
+  (run-p1 ["CA" "AZ" "NM" "CO" "IL" "LA" "NY"] "p1" format))
 
 (when-inp ["p1a" {:format string}]
-  (run-p1 ["WA" "FL" "WI" "MI" "IL" "NJ" "MA"] format))
+  (run-p1 ["WA" "FL" "WI" "MI" "GA" "PA" "MA"] "p1a" format))
 
 (sv *counties* (, (, "California" "Orange" 3185968)
                   (, "Arizona" "Maricopa" 4485414)
                   (, "New Mexico" "Bernalillo" 679121)
                   (, "Colorado" "Boulder" 326196)
-                  (, "Illinois" "Cook" 5150233)))
+                  (, "Illinois" "Cook" 5150233)
+                  (, "California" "Santa Clara" 1927852)))
 
 (when-inp ["dev-county"]
   (sv d (parse-county-data)

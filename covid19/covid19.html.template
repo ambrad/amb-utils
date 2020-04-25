@@ -5,7 +5,7 @@
 <img align="top" border=2 src="covid19/county-cumulative.png?STRING">
 <p>
 <img align="top" border=2 src="covid19/county-daily.png?STRING">
-<p>World of Data plots I find particularly informative:
+<p>Our World in Data plots I find particularly informative:
 <p><a href="https://ourworldindata.org/grapher/total-deaths-covid-19?yScale=log&country=COUNTRIES">Cumulative deaths</a>
 <p><a href="https://ourworldindata.org/grapher/total-covid-deaths-per-million?tab=chart&yScale=log&country=COUNTRIES">Cumulative deaths per million people</a>
 <p><a href="https://ourworldindata.org/grapher/daily-deaths-covid-19?tab=chart&yScale=log&country=COUNTRIES">Daily new deaths</a>

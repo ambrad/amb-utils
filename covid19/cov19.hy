@@ -128,7 +128,7 @@
         (when (= row 0)
           (sv xl (pl.xlim))
           (pl.legend :loc "best")
-          (pl.text 0.7 1.12 "Updated 24 April 2020" :transform ax.transAxes))
+          (pl.text 0.7 1.12 "Updated 25 April 2020" :transform ax.transAxes))
         (when (= row (dec nrow))
           (pl.xlabel "Day of year"))
         (when (= row 3)
@@ -201,7 +201,7 @@
 
 (when-inp ["plot-county-data"]
   (sv d (parse-county-data)
-      coi *counties*
+      coi (cut *counties* 0 -1)
       clrs "krgbmcy")
   (for [(, im measure) (enumerate (, "daily" "cumulative"))]
     (with [(pl-plot (, 12 6) (+ "fig/county-" measure) :format "png")]

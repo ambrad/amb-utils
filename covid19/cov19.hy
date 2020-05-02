@@ -95,18 +95,21 @@
            (sv s e))]
         [:else (pl.semilogy x y pat :label label)]))
 
-(defn run-p1 [soi filename format]
+(defn get-state-data []
   (sv fname "daily.json"
       data (parse-daily fname)
-      d (organize-daily data)
-      clrs "krgbmcy")
+      d (organize-daily data))
+  d)
+
+(defn plot-state-data [d soi filename format]
+  (sv clrs "krgbmcy"
+      namelo (, "daily" "cumulative" "cumulative-abs")
+      nameup (, "Daily new" "Cumulative" "Cumulative"))
   (for [yax (range 3)]
-    (sv namelo (, "daily" "cumulative" "cumulative-abs")
-        nameup (, "Daily new" "Cumulative" "Cumulative")
-        permil (< yax 2))
-    (with [(pl-plot (, 6 (if (zero? yax) 12 9))
+    (sv permil (< yax 2)
+        nrow (case/eq yax [0 4] [1 5] [2 3]))
+    (with [(pl-plot (, 6 (* 3 nrow))
                     (.format "fig/{}-{}" filename (get namelo yax)) :format format)]
-      (sv nrow (if (zero? yax) 4 3))
       (for [row (range nrow)]
         (sv ax (pl.subplot nrow 1 (inc row)))
         (for [(, i state) (enumerate soi)]
@@ -115,24 +118,44 @@
               clr (get clrs (% i (len clrs)))
               fac (if permil (/ 1e6 (get-state-pop state)) 1)
               y (case/in yax
-                         [(, 0) (get e (get (, :testinc :posinc :deadinc :hospcur) row))]
-                         [(, 1 2) (get e (get (, :testcum :poscum :deadcum) row))])
+                         [(, 0)
+                          (get e (get (, :testinc :posinc :deadinc :hospcur) row))]
+                         [(, 1 2)
+                          (case/in row
+                                   [(, 0 1 2)
+                                    (get e (get (, :testcum :poscum :deadcum) row))]
+                                   [(, 3)
+                                    (/ (get e :poscum) (get e :testcum))]
+                                   [(, 4)
+                                    (/ (get e :deadcum) (get e :poscum))])])
               pat "-")
-          (semilogy-filter-drops x (* fac y) (+ clr pat) state))
-        (pl.title (+ (if (= row 3) 
-                         "Currently hospitalized"
+          (cond [(or (zero? yax) (in row (, 0 1 2 5)))
+                 (semilogy-filter-drops x (* fac y) (+ clr pat) state)]
+                [:else
+                 (pl.plot x y (+ clr pat) :label state)]))
+        (pl.title (cond [(< row 3)
                          (+ (get nameup yax) " "
-                            (get (, "tests" "positive" "deaths") row)))
-                     (if permil " per million people" "")))
+                            (get (, "tests" "positive" "deaths") row)
+                            (if permil " per million people" ""))]
+                        [(and (zero? yax) (= row 3)) "Currently hospitalized"]
+                        [(= row 3)
+                         (.format "{lbl:s} positive / {lbl:s} tests" :lbl (get nameup yax))]
+                        [(= row 4)
+                         (.format "{lbl:s} deaths / {lbl:s} positive cases"
+                                  :lbl (get nameup yax))]))
         (my-grid)
         (when (= row 0)
           (sv xl (pl.xlim))
           (pl.legend :loc "best")
-          (pl.text 0.7 1.12 "Updated 1 May 2020" :transform ax.transAxes))
+          (dont pl.text 0.7 1.12 "Updated 2 May 2020" :transform ax.transAxes))
         (when (= row (dec nrow))
           (pl.xlabel "Day of year"))
-        (when (= row 3)
-          (pl.xlim xl))))))
+        (when (= row 5)
+          (pl.xlim xl))
+        (when (!= yax 0)
+          (case/eq row
+                   [3 (pl.ylim 0 0.45)]
+                   [4 (sv yl (pl.ylim)) (pl.ylim 0 (min (last yl) 0.1))]))))))
 
 (defn parse-county-data []
   (sv filename "covid-19-data/us-counties.csv"
@@ -180,10 +203,13 @@
     (my-grid)))
 
 (when-inp ["p1" {:format string}]
-  (run-p1 ["CA" "AZ" "NM" "CO" "IL" "LA" "NY"] "p1" format))
+  (plot-state-data (get-state-data) ["CA" "AZ" "NM" "CO" "IL" "LA" "NY"] "p1" format))
 
 (when-inp ["p1a" {:format string}]
-  (run-p1 ["WA" "FL" "WI" "MI" "GA" "PA" "MA"] "p1a" format))
+  (plot-state-data (get-state-data) ["WA" "FL" "WI" "MI" "GA" "PA" "MA"] "p1a" format))
+
+(when-inp ["p1b" {:format string}]
+  (sv d (get-state-data)))
 
 (sv *counties* (, (, "California" "Orange" 3185968)
                   (, "Arizona" "Maricopa" 4485414)

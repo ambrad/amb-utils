@@ -1,3 +1,5 @@
+Updated 2 May 2020
+<p>
 <img align="top" border=2 src="covid19/p1-daily.png?STRING">
 <img align="top" border=2 src="covid19/p1-cumulative.png?STRING">
 <img align="top" border=2 src="covid19/p1-cumulative-abs.png?STRING">
@@ -17,6 +19,7 @@ Some other states
 <p>
 <img align="top" border=2 src="covid19/p1a-daily.png?STRING">
 <img align="top" border=2 src="covid19/p1a-cumulative.png?STRING">
+<img align="top" border=2 src="covid19/p1a-cumulative-abs.png?STRING">
 <p>from <a href="https://github.com/ambrad/amb-utils/tree/cov19/covid19">this github repo/branch</a>
 <p>state data: <a href="https://covidtracking.com/api/v1/states/daily.json">https://covidtracking.com/api/v1/states/daily.json</a>
 <p>county data: <a href="https://github.com/nytimes/covid-19-data">https://github.com/nytimes/covid-19-data</a>

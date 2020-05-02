@@ -162,9 +162,11 @@
                          (+ (get nameup yax) " "
                             (get (, "tests" "positive" "deaths") row)
                             (if permil " per million people" ""))]
-                        [(and (zero? yax) (= row 3)) "Currently hospitalized"]
-                        [(= row 3)
-                         (.format "{lbl:s} positive / {lbl:s} tests" :lbl (get nameup yax))]
+                        [(and (zero? yax) (= row 3))
+                         (+ "Currently hospitalized"
+                            (if permil " per million people" ""))]
+                         [(= row 3)
+                          (.format "{lbl:s} positive / {lbl:s} tests" :lbl (get nameup yax))]
                         [(= row 4)
                          (.format "{lbl:s} deaths / {lbl:s} positive cases"
                                   :lbl (get nameup yax))]))

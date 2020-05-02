@@ -1,5 +1,5 @@
 # from https://www.census.gov/data/tables/time-series/demo/popest/2010s-state-total.html
-# dataset http://www2.census.gov/programs-surveys/popest/datasets/2010-2019/national/totals/nst-est2019-alldata.csv?#
+# dataset http://www2.census.gov/programs-surveys/popest/datasets/2010-2019/national/totals/nst-est2019-alldata.csv?
 United States	328239523
 Alabama	4903185
 Alaska	731545
@@ -53,3 +53,5 @@ West Virginia	1792147
 Wisconsin	5822434
 Wyoming	578759
 Puerto Rico	3193694
+# from wikipedia
+Guam	162742

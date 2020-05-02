@@ -78,9 +78,40 @@
   (sv state (get {"IL" "Illinois" "CA" "California" "NY" "New York" "NM" "New Mexico"
                   "AZ" "Arizona" "CO" "Colorado" "LA" "Louisiana" "FL" "Florida"
                   "MA" "Massachusetts" "NJ" "New Jersey" "WA" "Washington"
-                  "WI" "Wisconsin" "MI" "Michigan" "GA" "Georgia" "PA" "Pennsylvania"}
+                  "WI" "Wisconsin" "MI" "Michigan" "GA" "Georgia" "PA" "Pennsylvania"
+                  "CT" "Connecticut" "IN" "Indiana" "MN" "Minnesota" "OK" "Oklahoma"
+                  "VT" "Vermont" "PR" "Puerto Rico" "OH" "Ohio" "MD" "Maryland"
+                  "KY" "Kentucky" "DC" "District of Columbia" "ME" "Maine" "NV" "Nevada"
+                  "VA" "Virginia" "GU" "Guam" "DE" "Delaware" "RI" "Rhode Island"
+                  "ID" "Idaho" "TX" "Texas" "KS" "Kansas" "HI" "Hawaii" "AK" "Alaska"
+                  "AR" "Arkansas" "ND" "North Dakota" "SD" "South Dakota" "IA" "Iowa"
+                  "TN" "Tennessee" "NE" "Nebraska" "WY" "Wyoming" "UT" "Utah"
+                  "VI" "Virginia" "WV" "West Virginia" "MO" "Missouri" "MT" "Montana"
+                  "MS" "Mississippi" "SC" "South Carolina" "NC" "North Carolina"
+                  "OR" "Oregon" "NH" "New Hampshire" "AL" "Alabama"}
                  abbrev))
   (get *state-pop* state))
+
+(defn get-state-data []
+  (sv fname "daily.json"
+      data (parse-daily fname)
+      d (organize-daily data))
+  d)
+
+(defn rank-by-roughly-current-cfr [d]
+  (sv all-states (.keys d)
+      states []
+      cfrs [])
+  (for [state all-states]
+    (when (< (last (get d state :deadcum)) 50) (continue))
+    (sv den (last (get d state :poscum)))
+    (.append states state)
+    (.append cfrs (cond [(zero? den) 0]
+                        [:else (- (/ (last (get d state :deadcum)) den))])))
+  (sv (, cfrs p) (sort-with-p cfrs)
+      states (list-comp (get states e) [e p]))
+  (dont for [(, s c) (zip states cfrs)] (print s c))
+  states)
 
 (defn semilogy-filter-drops [x y pat label]
   (cond [(npy.any (= y 0))
@@ -94,12 +125,6 @@
                (pl.semilogy (cut x s e) (cut y s e) (+ (first pat) "o")))
            (sv s e))]
         [:else (pl.semilogy x y pat :label label)]))
-
-(defn get-state-data []
-  (sv fname "daily.json"
-      data (parse-daily fname)
-      d (organize-daily data))
-  d)
 
 (defn plot-state-data [d soi filename format]
   (sv clrs "krgbmcy"
@@ -128,7 +153,7 @@
                                     (/ (get e :poscum) (get e :testcum))]
                                    [(, 4)
                                     (/ (get e :deadcum) (get e :poscum))])])
-              pat "-")
+              pat (get (, "-" "--" ":" "-.") (// i (len clrs))))
           (cond [(or (zero? yax) (in row (, 0 1 2 5)))
                  (semilogy-filter-drops x (* fac y) (+ clr pat) state)]
                 [:else
@@ -146,7 +171,8 @@
         (my-grid)
         (when (= row 0)
           (sv xl (pl.xlim))
-          (pl.legend :loc "best")
+          (pl.legend :loc "best" :fontsize (if (< (len soi) 8) None 8)
+                     :ncol (if (< (len soi) 8) 1 2))
           (dont pl.text 0.7 1.12 "Updated 2 May 2020" :transform ax.transAxes))
         (when (= row (dec nrow))
           (pl.xlabel "Day of year"))
@@ -209,7 +235,11 @@
   (plot-state-data (get-state-data) ["WA" "FL" "WI" "MI" "GA" "PA" "MA"] "p1a" format))
 
 (when-inp ["p1b" {:format string}]
-  (sv d (get-state-data)))
+  (sv d (get-state-data)
+      soi (rank-by-roughly-current-cfr d)
+      div (// (len soi) 2))
+  (plot-state-data d (cut soi 0 div) "p1hicfr" format)
+  (plot-state-data d (cut soi div) "p1locfr" format))
 
 (sv *counties* (, (, "California" "Orange" 3185968)
                   (, "Arizona" "Maricopa" 4485414)

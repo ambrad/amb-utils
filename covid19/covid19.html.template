@@ -20,6 +20,17 @@ Some other states
 <img align="top" border=2 src="covid19/p1a-daily.png?STRING">
 <img align="top" border=2 src="covid19/p1a-cumulative.png?STRING">
 <img align="top" border=2 src="covid19/p1a-cumulative-abs.png?STRING">
+<p>
+Many more states
+<p>
+<img align="top" border=2 src="covid19/p1locfr-cumulative.png?STRING">
+<img align="top" border=2 src="covid19/p1hicfr-cumulative.png?STRING">
+<p>
+<img align="top" border=2 src="covid19/p1locfr-cumulative-abs.png?STRING">
+<img align="top" border=2 src="covid19/p1hicfr-cumulative-abs.png?STRING">
+<p>
+<img align="top" border=2 src="covid19/p1locfr-daily.png?STRING">
+<img align="top" border=2 src="covid19/p1hicfr-daily.png?STRING">
 <p>from <a href="https://github.com/ambrad/amb-utils/tree/cov19/covid19">this github repo/branch</a>
 <p>state data: <a href="https://covidtracking.com/api/v1/states/daily.json">https://covidtracking.com/api/v1/states/daily.json</a>
 <p>county data: <a href="https://github.com/nytimes/covid-19-data">https://github.com/nytimes/covid-19-data</a>

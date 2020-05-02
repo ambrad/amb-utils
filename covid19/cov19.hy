@@ -128,7 +128,7 @@
         (when (= row 0)
           (sv xl (pl.xlim))
           (pl.legend :loc "best")
-          (pl.text 0.7 1.12 "Updated 25 April 2020" :transform ax.transAxes))
+          (pl.text 0.7 1.12 "Updated 1 May 2020" :transform ax.transAxes))
         (when (= row (dec nrow))
           (pl.xlabel "Day of year"))
         (when (= row 3)
@@ -190,6 +190,7 @@
                   (, "New Mexico" "Bernalillo" 679121)
                   (, "Colorado" "Boulder" 326196)
                   (, "Illinois" "Cook" 5150233)
+                  (, "New Mexico" "McKinley" 71367)
                   (, "California" "Santa Clara" 1927852)))
 
 (when-inp ["dev-county"]
@@ -226,7 +227,7 @@
                          "Daily new"
                          "Cumulative")
                      " "
-                     (get (, "cases" "cases per million"
-                             "deaths" "deaths per million") (dec idx))))
+                     (get (, "cases" "cases per million people"
+                             "deaths" "deaths per million people") (dec idx))))
         (when (= row 1) (pl.xlabel "Day of Year"))
         (when (= idx 3) (pl.legend :loc "best"))))))

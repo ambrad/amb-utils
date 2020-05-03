@@ -172,14 +172,14 @@
                                   :lbl (get nameup yax))]))
         (my-grid)
         (when (= row 0)
-          (sv xl (pl.xlim))
+          (sv xl (pl.xlim)
+              xl (, 69 (dec (second xl))))
           (pl.legend :loc "best" :fontsize (if (< (len soi) 8) None 8)
                      :ncol (if (< (len soi) 8) 1 2))
           (dont pl.text 0.7 1.12 "Updated 2 May 2020" :transform ax.transAxes))
+        (pl.xlim xl)
         (when (= row (dec nrow))
           (pl.xlabel "Day of year"))
-        (when (= row 5)
-          (pl.xlim xl))
         (when (!= yax 0)
           (case/eq row
                    [3 (pl.ylim 0 0.45)]

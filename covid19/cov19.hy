@@ -138,26 +138,29 @@
       (for [row (range nrow)]
         (sv ax (pl.subplot nrow 1 (inc row)))
         (for [(, i state) (enumerate soi)]
-          (sv e (get d state)
-              x (:date e)
-              clr (get clrs (% i (len clrs)))
-              fac (if permil (/ 1e6 (get-state-pop state)) 1)
-              y (case/in yax
-                         [(, 0)
-                          (get e (get (, :testinc :posinc :deadinc :hospcur) row))]
-                         [(, 1 2)
-                          (case/in row
-                                   [(, 0 1 2)
-                                    (get e (get (, :testcum :poscum :deadcum) row))]
-                                   [(, 3)
-                                    (/ (get e :poscum) (get e :testcum))]
-                                   [(, 4)
-                                    (/ (get e :deadcum) (get e :poscum))])])
-              pat (get (, "-" "--" ":" "-.") (// i (len clrs))))
-          (cond [(or (zero? yax) (in row (, 0 1 2 5)))
-                 (semilogy-filter-drops x (* fac y) (+ clr pat) state)]
-                [:else
-                 (pl.plot x y (+ clr pat) :label state)]))
+          (try
+            (do
+              (sv e (get d state)
+                  x (:date e)
+                  clr (get clrs (% i (len clrs)))
+                  fac (if permil (/ 1e6 (get-state-pop state)) 1)
+                  y (case/in yax
+                             [(, 0)
+                              (get e (get (, :testinc :posinc :deadinc :hospcur) row))]
+                             [(, 1 2)
+                              (case/in row
+                                       [(, 0 1 2)
+                                        (get e (get (, :testcum :poscum :deadcum) row))]
+                                       [(, 3)
+                                        (/ (get e :poscum) (get e :testcum))]
+                                       [(, 4)
+                                        (/ (get e :deadcum) (get e :poscum))])])
+                  pat (get (, "-" "--" ":" "-.") (// i (len clrs))))
+              (cond [(or (zero? yax) (in row (, 0 1 2 5)))
+                     (semilogy-filter-drops x (* fac y) (+ clr pat) state)]
+                    [:else
+                     (pl.plot x y (+ clr pat) :label state)]))
+            (except [e Exception] (print e))))
         (pl.title (cond [(< row 3)
                          (+ (get nameup yax) " "
                             (get (, "tests" "positive" "deaths") row)

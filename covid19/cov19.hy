@@ -152,15 +152,21 @@
                                        [(, 0 1 2)
                                         (get e (get (, :testcum :poscum :deadcum) row))]
                                        [(, 3)
-                                        (/ (get e :poscum) (get e :testcum))]
+                                        (/ (:poscum e) (:testcum e))]
                                        [(, 4)
-                                        (/ (get e :deadcum) (get e :poscum))])])
+                                        (sv den (:poscum e)
+                                            mask (= den 0))
+                                        (when (npy.any mask)
+                                          (sv den (.copy den)
+                                              (get den mask) 1))
+                                        (/ (:deadcum e) den)])])
                   pat (get (, "-" "--" ":" "-.") (// i (len clrs))))
               (cond [(or (zero? yax) (in row (, 0 1 2 5)))
                      (semilogy-filter-drops x (* fac y) (+ clr pat) state)]
                     [:else
                      (pl.plot x y (+ clr pat) :label state)]))
-            (except [e Exception] (print e))))
+            (except [err Exception]
+              (print err yax row state))))
         (pl.title (cond [(< row 3)
                          (+ (get nameup yax) " "
                             (get (, "tests" "positive" "deaths") row)

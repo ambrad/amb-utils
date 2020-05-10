@@ -292,7 +292,7 @@
       coi (cut *counties* 0 -1)
       clrs "krgbmcy")
   (for [(, im measure) (enumerate (, "daily" "cumulative"))]
-    (with [(pl-plot (, 12 6) (+ "covid19/county-" measure) :format "pdf")]
+    (with [(pl-plot (, 12 6) (+ "covid19/county-" measure) :format format)]
       (for [row (range 2)
             col (range 2)]
         (sv idx (inc (+ (* 2 row) col)))

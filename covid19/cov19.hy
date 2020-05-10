@@ -1,5 +1,3 @@
-;;; wget https://covidtracking.com/api/v1/states/daily.json
-
 (require [amb [*]])
 (import [amb [*]] json)
 
@@ -134,7 +132,7 @@
     (sv permil (< yax 2)
         nrow (case/eq yax [0 4] [1 5] [2 3]))
     (with [(pl-plot (, 6 (* 3 nrow))
-                    (.format "fig/{}-{}" filename (get namelo yax)) :format format)]
+                    (.format "covid19/{}-{}" filename (get namelo yax)) :format format)]
       (for [row (range nrow)]
         (sv ax (pl.subplot nrow 1 (inc row)))
         (for [(, i state) (enumerate soi)]
@@ -208,11 +206,12 @@
             cases (int cases) deaths (int deaths))
         (except []
           (continue)))
-      (unless (and (in state d) (in county (get d state)))
-        (assoc-nested d (, state county) {:date [] :case [] :death []}))
-      (.append (get d state county :date) doy)
-      (.append (get d state county :case) cases)
-      (.append (get d state county :death) deaths)))
+      (sv key (, state county))
+      (unless (in (, state county) d)
+        (assoc d key {:date [] :case [] :death []}))
+      (.append (get d key :date) doy)
+      (.append (get d key :case) cases)
+      (.append (get d key :death) deaths)))
   d)
 
 (when-inp ["dev-pop"]
@@ -231,7 +230,7 @@
       d (organize-daily data))
   (print (cut data 0 1))
   (print (get d "WI"))
-  (with [(pl-plot (, 6 6) "fig/test")]
+  (with [(pl-plot (, 6 6) "covid19/test")]
     (sv e (get d "WI")
         x (cut (:date e) 1))
     (pl.semilogy x (npy.diff (:testcum e)) "k:"
@@ -267,18 +266,39 @@
     (sv e (get coi i))
     (print (get d (first e) (second e)))))
 
-(when-inp ["plot-county-data"]
+(when-inp ["county-stuff"]
+  (sv d (parse-county-data)
+      n 400
+      counties [] deaths [] cases [])
+  (for [c (.items d)]
+    (.append counties (first c))
+    (.append deaths (last (:death (second c))))
+    (.append cases (last (:case (second c)))))
+  (sv (, - p) (sort-with-p deaths)
+      p (reverse p)
+      deaths (list-get-list deaths p)
+      cases (list-get-list cases p)
+      counties (list-get-list counties p))
+  (for [i (range n)]
+    (sv c (get counties i))
+    (prf "{:20s} {:20s} {:8d} {:4.1f}"
+         (first c) (second c) (get deaths i)
+         (if (> (get cases i) 0)
+             (* 100 (/ (get deaths i) (get cases i)))
+             -1))))
+
+(when-inp ["plot-county-data" {:format string}]
   (sv d (parse-county-data)
       coi (cut *counties* 0 -1)
       clrs "krgbmcy")
   (for [(, im measure) (enumerate (, "daily" "cumulative"))]
-    (with [(pl-plot (, 12 6) (+ "fig/county-" measure) :format "png")]
+    (with [(pl-plot (, 12 6) (+ "covid19/county-" measure) :format "pdf")]
       (for [row (range 2)
             col (range 2)]
         (sv idx (inc (+ (* 2 row) col)))
         (pl.subplot 2 2 idx)
         (for [(, ic county) (enumerate coi)]
-          (sv dc (get d (first county) (second county))
+          (sv dc (get d (, (first county) (second county)))
               pop (last county)
               x (npy.array (:date dc))
               y (* (npy.array ((if (zero? row) :case :death) dc))

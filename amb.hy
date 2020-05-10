@@ -255,6 +255,11 @@
   (setv c (copy.deepcopy coll))
   (sort! c))
 
+(defn reverse [coll]
+  "Functional reverse."
+  (setv c (copy.deepcopy coll))
+  (.reverse c)
+  c)
 
 (defn extend! [coll1 coll2]
   (.extend coll1 coll2)
@@ -263,6 +268,9 @@
 (defn extend [coll1 coll2]
   (setv c (copy.deepcopy coll1))
   (extend! c coll2))
+
+(defn list-get-list [coll idxs]
+  (list-comp (get coll e) [e idxs]))
 
 (defn find [e coll &optional [always-list False]]
   (setv f [])

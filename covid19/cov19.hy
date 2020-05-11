@@ -358,7 +358,7 @@
                  x (* max-pos-per-capita (/ y-pos (max y-pos))) "b-"
                  :linewidth 0.5)
         (pl.xlim (, 70 (inc (last x))))
-        (pl.ylim (, (* -0.03 max-pos-per-capita) (* 2 max-pos-per-capita)))
+        (pl.ylim (, (* -0.03 max-pos-per-capita) (* 2.01 max-pos-per-capita)))
         (pl.xticks []) (pl.yticks [])
         (pl.axis "off")
         (pl.title s)))))

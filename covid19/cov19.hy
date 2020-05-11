@@ -351,6 +351,8 @@
             y-deaths (* fac (/ (deadsym e) pop))
             y-pos (/ (possym e) pop))
         (pl.subplot 8 8 (inc i))
+        (pl.plot x (* 0 x) "k-" x (* fac max-deaths-per-capita (npy.ones (len x))) "k-"
+                 :linewidth 0.5)
         (pl.plot x (+ (* fac max-deaths-per-capita) y-deaths) "r-" x y-pos "b-")
         (pl.xlim (, 70 (inc (last x))))
         (pl.ylim (, (* -0.03 max-pos-per-capita) (* 2 max-pos-per-capita)))

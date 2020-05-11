@@ -343,14 +343,14 @@
                                      (/ (max (get d s deadsym))
                                         (get-state-pop s)))))
     (sv fac (/ max-pos-per-capita max-deaths-per-capita))
-    (with [(pl-plot (, 12 12) (+ "covid19/glance-" meas) :format format)]
+    (with [(pl-plot (, 14 12) (+ "covid19/glance-" meas) :format format)]
       (for [(, i s) (enumerate states)]
         (sv e (get d s)
             x (:date e)
             pop (get-state-pop s)
             y-deaths (* fac (/ (deadsym e) pop))
             y-pos (/ (possym e) pop))
-        (pl.subplot 8 8 (inc i))
+        (pl.subplot 8 10 (inc i))
         (pl.plot x (* 0 x) "k-" x (* fac max-deaths-per-capita (npy.ones (len x))) "k-"
                  :linewidth 0.5)
         (pl.plot x (+ max-pos-per-capita y-deaths) "r-" x y-pos "b-")

@@ -321,9 +321,15 @@
 
 (when-inp ["glance" {:format string}]
   (sv d (get-state-data)
-      states (sort (.keys d)))
+      states (.keys d)
+      deadcums [])
   (for [rm (, "AS" "MP")]
     (.remove states rm))
+  (for [s states]
+    (.append deadcums (/ (last (- (get d s :deadcum)))
+                        (get-state-pop s))))
+  (sv (, - p) (sort-with-p deadcums)
+      states (list-get-list states p))
   (for [(, im meas) (enumerate (, "daily" "cumulative"))]
     (sv max-pos-per-capita 0
         max-deaths-per-capita 0

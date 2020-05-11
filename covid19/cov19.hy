@@ -361,4 +361,4 @@
         (pl.ylim (, (* -0.03 max-pos-per-capita) (* 2.01 max-pos-per-capita)))
         (pl.xticks []) (pl.yticks [])
         (pl.axis "off")
-        (pl.title s)))))
+        (pl.text 72 (* 1.75 max-pos-per-capita) s :fontsize 12)))))

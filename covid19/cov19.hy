@@ -86,7 +86,8 @@
                   "TN" "Tennessee" "NE" "Nebraska" "WY" "Wyoming" "UT" "Utah"
                   "VI" "Virginia" "WV" "West Virginia" "MO" "Missouri" "MT" "Montana"
                   "MS" "Mississippi" "SC" "South Carolina" "NC" "North Carolina"
-                  "OR" "Oregon" "NH" "New Hampshire" "AL" "Alabama"}
+                  "OR" "Oregon" "NH" "New Hampshire" "AL" "Alabama" "AS" "American Samoa"
+                  "MP" "Northern Mariana Islands"}
                  abbrev))
   (get *state-pop* state))
 
@@ -323,7 +324,7 @@
   (sv d (get-state-data)
       states (.keys d)
       deadcums [])
-  (for [rm (, "AS" "MP")]
+    (for [rm (, "AS" "MP")]
     (.remove states rm))
   (for [s states]
     (.append deadcums (/ (last (- (get d s :deadcum)))
@@ -343,14 +344,14 @@
                                      (/ (max (get d s deadsym))
                                         (get-state-pop s)))))
     (sv fac (/ max-pos-per-capita max-deaths-per-capita))
-    (with [(pl-plot (, 14 12) (+ "covid19/glance-" meas) :format format)]
+    (with [(pl-plot (, 14 9.5) (+ "covid19/glance-" meas) :format format)]
       (for [(, i s) (enumerate states)]
         (sv e (get d s)
             x (:date e)
             pop (get-state-pop s)
             y-deaths (* fac (/ (deadsym e) pop))
             y-pos (/ (possym e) pop))
-        (pl.subplot 8 10 (inc i))
+        (pl.subplot 6 9 (inc i))
         (pl.plot x (* 0 x) "k-" x (* fac max-deaths-per-capita (npy.ones (len x))) "k-"
                  :linewidth 0.5)
         (pl.plot x (+ max-pos-per-capita y-deaths) "r-" x y-pos "b-")

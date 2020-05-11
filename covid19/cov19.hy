@@ -318,3 +318,36 @@
                              "deaths" "deaths per million people") (dec idx))))
         (when (= row 1) (pl.xlabel "Day of Year"))
         (when (= idx 3) (pl.legend :loc "best"))))))
+
+(when-inp ["glance" {:format string}]
+  (sv d (get-state-data)
+      states (sort (.keys d)))
+  (for [rm (, "AS" "MP")]
+    (.remove states rm))
+  (for [(, im meas) (enumerate (, "daily" "cumulative"))]
+    (sv max-pos-per-capita 0
+        max-deaths-per-capita 0
+        possym (if (zero? im) :posinc :poscum)
+        deadsym (if (zero? im) :deadinc :deadcum))
+    (for [s states]
+      (sv max-pos-per-capita (max max-pos-per-capita
+                                  (/ (max (get d s possym))
+                                     (get-state-pop s)))
+          max-deaths-per-capita (max max-deaths-per-capita
+                                     (/ (max (get d s deadsym))
+                                        (get-state-pop s)))))
+    (sv fac (/ max-pos-per-capita max-deaths-per-capita))
+    (with [(pl-plot (, 12 12) (+ "covid19/glance-" meas) :format format)]
+      (for [(, i s) (enumerate states)]
+        (sv e (get d s)
+            x (:date e)
+            pop (get-state-pop s)
+            y-deaths (* fac (/ (deadsym e) pop))
+            y-pos (/ (possym e) pop))
+        (pl.subplot 8 8 (inc i))
+        (pl.plot x (+ (* fac max-deaths-per-capita) y-deaths) "r-" x y-pos "b-")
+        (pl.xlim (, 70 (inc (last x))))
+        (pl.ylim (, (* -0.03 max-pos-per-capita) (* 2 max-pos-per-capita)))
+        (pl.xticks []) (pl.yticks [])
+        (pl.axis "off")
+        (pl.title s)))))

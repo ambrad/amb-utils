@@ -1,4 +1,4 @@
-Updated 10 May 2020
+Updated 11 May 2020
 <p>
 <img align="top" border=2 src="covid19/p1-daily.png?STRING">
 <img align="top" border=2 src="covid19/p1-cumulative.png?STRING">
@@ -32,6 +32,9 @@ Many more states
 <p>
 <img align="top" border=2 src="covid19/p1locfr-daily.png?STRING">
 <img align="top" border=2 src="covid19/p1hicfr-daily.png?STRING">
+<p> States at a glance. Blue is positive cases; red is deaths. Numbers are per capita. Y axis is linear and the same for every state so per capita numbers can be compared between states. Deaths and cases are not on the same scale. Cumulative and daily.
+<p><img align="top" border=2 src="covid19/glance-cumulative.png?STRING">
+<p><img align="top" border=2 src="covid19/glance-daily.png?STRING">
 <p>from <a href="https://github.com/ambrad/amb-utils/tree/cov19/covid19">this github repo/branch</a>
 <p>state data: <a href="https://covidtracking.com/api/v1/states/daily.json">https://covidtracking.com/api/v1/states/daily.json</a>
 <p>county data: <a href="https://github.com/nytimes/covid-19-data">https://github.com/nytimes/covid-19-data</a>

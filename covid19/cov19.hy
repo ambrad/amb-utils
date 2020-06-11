@@ -220,7 +220,7 @@
   (print pop))
 
 (when-inp ["dev-doy"]
-  (for [e [20200111 20200211 20200311 20200411]]
+  (for [e [20200111 20200211 20200311 20200411 20200531]]
     (print e (date->doy e)))
   (for [e ["2020-01-11" "2020-02-11" "2020-03-11" "2020-04-11"]]
     (print e (date->doy e True))))
@@ -240,10 +240,10 @@
     (my-grid)))
 
 (when-inp ["p1" {:format string}]
-  (plot-state-data (get-state-data) ["CA" "AZ" "NM" "CO" "IL" "LA" "NY"] "p1" format))
+  (plot-state-data (get-state-data) ["NM" "AZ" "CA" "CO" "IL" "MI" "NY"] "p1" format))
 
 (when-inp ["p1a" {:format string}]
-  (plot-state-data (get-state-data) ["WA" "FL" "WI" "MI" "GA" "PA" "MA"] "p1a" format))
+  (plot-state-data (get-state-data) ["AL" "IN" "TX" "WI" "GA" "NE" "MN"] "p1a" format))
 
 (when-inp ["p1b" {:format string}]
   (sv d (get-state-data)
@@ -258,6 +258,8 @@
                   (, "Colorado" "Boulder" 326196)
                   (, "Illinois" "Cook" 5150233)
                   (, "New Mexico" "McKinley" 71367)
+                  (, "New Mexico" "San Juan" 123958)
+                  (, "Colorado" "Douglas" 351154)
                   (, "California" "Santa Clara" 1927852)))
 
 (when-inp ["dev-county"]
@@ -290,7 +292,7 @@
 
 (when-inp ["plot-county-data" {:format string}]
   (sv d (parse-county-data)
-      coi (cut *counties* 0 -1)
+      coi (cut *counties* 0 -2)
       clrs "krgbmcy")
   (for [(, im measure) (enumerate (, "daily" "cumulative"))]
     (with [(pl-plot (, 12 6) (+ "covid19/county-" measure) :format format)]
@@ -310,6 +312,7 @@
           (pl.semilogy x y (get clrs ic) :label (second county)))
         (my-grid)
         (sv xl (pl.xlim))
+        (pl.xticks (range 70 200 10))
         (pl.xlim 70 (second xl))
         (pl.title (+ (if (zero? im)
                          "Daily new"
@@ -324,11 +327,11 @@
   (sv d (get-state-data)
       states (.keys d)
       deadcums [])
-    (for [rm (, "AS" "MP")]
+  (for [rm (, "AS" "MP")]
     (.remove states rm))
   (for [s states]
     (.append deadcums (/ (last (- (get d s :deadcum)))
-                        (get-state-pop s))))
+                         (get-state-pop s))))
   (sv (, - p) (sort-with-p deadcums)
       states (list-get-list states p))
   (for [(, im meas) (enumerate (, "daily" "cumulative"))]
@@ -363,3 +366,4 @@
         (pl.xticks []) (pl.yticks [])
         (pl.axis "off")
         (pl.text 72 (* 1.75 max-pos-per-capita) s :fontsize 12)))))
+

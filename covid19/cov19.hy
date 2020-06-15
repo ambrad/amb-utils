@@ -359,6 +359,8 @@
             y-deaths (* fac (/ (deadsym e) pop))
             y-pos (/ (possym e) pop)
             y-hosp (* fac1 (/ (hospsym e) pop)))
+        (when (and (zero? im) (in s (, "KY" "MD" "KS" "IN")))
+          (sv (get y-pos (slice 0 15)) 0))
         (pl.subplot 6 9 (inc i))
         (pl.plot x (* 0 x) "k-" x (* max-pos-per-capita (npy.ones (len x))) "k-"
                  x (* 2 max-pos-per-capita (npy.ones (len x))) "k-"

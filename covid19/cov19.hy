@@ -240,10 +240,10 @@
     (my-grid)))
 
 (when-inp ["p1" {:format string}]
-  (plot-state-data (get-state-data) ["NM" "AZ" "CA" "CO" "IL" "MI" "NY"] "p1" format))
+  (plot-state-data (get-state-data) ["NM" "AZ" "CA" "CO" "IL" "WA" "NC"] "p1" format))
 
 (when-inp ["p1a" {:format string}]
-  (plot-state-data (get-state-data) ["AL" "IN" "TX" "WI" "GA" "NE" "MN"] "p1a" format))
+  (plot-state-data (get-state-data) ["AL" "LA" "TX" "NV" "GA" "OK" "SC"] "p1a" format))
 
 (when-inp ["p1b" {:format string}]
   (sv d (get-state-data)
@@ -252,9 +252,9 @@
   (plot-state-data d (cut soi 0 div) "p1hicfr" format)
   (plot-state-data d (cut soi div) "p1locfr" format))
 
-(sv *counties* (, (, "California" "Orange" 3185968)
+(sv *counties* (, (, "New Mexico" "Bernalillo" 679121)
                   (, "Arizona" "Maricopa" 4485414)
-                  (, "New Mexico" "Bernalillo" 679121)
+                  (, "California" "Orange" 3185968)
                   (, "Colorado" "Boulder" 326196)
                   (, "Illinois" "Cook" 5150233)
                   (, "New Mexico" "McKinley" 71367)
@@ -337,33 +337,47 @@
   (for [(, im meas) (enumerate (, "daily" "cumulative"))]
     (sv max-pos-per-capita 0
         max-deaths-per-capita 0
+        max-hosp-per-capita 0
         possym (if (zero? im) :posinc :poscum)
-        deadsym (if (zero? im) :deadinc :deadcum))
+        deadsym (if (zero? im) :deadinc :deadcum)
+        hospsym :hospcur)
     (for [s states]
-      (sv max-pos-per-capita (max max-pos-per-capita
-                                  (/ (max (get d s possym))
-                                     (get-state-pop s)))
+      (sv state-pop (get-state-pop s)
+          max-pos-per-capita (max max-pos-per-capita
+                                  (/ (max (get d s possym)) state-pop))
           max-deaths-per-capita (max max-deaths-per-capita
-                                     (/ (max (get d s deadsym))
-                                        (get-state-pop s)))))
-    (sv fac (/ max-pos-per-capita max-deaths-per-capita))
-    (with [(pl-plot (, 14 9.5) (+ "covid19/glance-" meas) :format format)]
+                                     (/ (max (get d s deadsym)) state-pop))
+          max-hosp-per-capita (max max-hosp-per-capita
+                                   (/ (max (get d s hospsym)) state-pop))))
+    (sv fac (/ max-pos-per-capita max-deaths-per-capita)
+        fac1 (/ max-pos-per-capita max-hosp-per-capita))
+    (with [(pl-plot (, 14 (if (zero? im) 14.25 9.5)) (+ "covid19/glance-" meas) :format format)]
       (for [(, i s) (enumerate states)]
         (sv e (get d s)
             x (:date e)
             pop (get-state-pop s)
             y-deaths (* fac (/ (deadsym e) pop))
-            y-pos (/ (possym e) pop))
+            y-pos (/ (possym e) pop)
+            y-hosp (* fac1 (/ (hospsym e) pop)))
         (pl.subplot 6 9 (inc i))
-        (pl.plot x (* 0 x) "k-" x (* fac max-deaths-per-capita (npy.ones (len x))) "k-"
+        (pl.plot x (* 0 x) "k-" x (* max-pos-per-capita (npy.ones (len x))) "k-"
+                 x (* 2 max-pos-per-capita (npy.ones (len x))) "k-"
                  :linewidth 0.5)
-        (pl.plot x (+ max-pos-per-capita y-deaths) "r-" x y-pos "b-")
-        (pl.plot x (+ max-pos-per-capita (* max-pos-per-capita (/ y-deaths (max y-deaths)))) "r-"
-                 x (* max-pos-per-capita (/ y-pos (max y-pos))) "b-"
+        (sv base 0 cnt 2)
+        (when (zero? im)
+          (when (> (max y-hosp) 0)
+            (pl.plot x y-hosp "g-")  
+            (pl.plot x (* max-pos-per-capita (/ y-hosp (max y-hosp))) "g-"
+                     :linewidth 0.5))
+          (sv base max-pos-per-capita
+              cnt 3))
+        (pl.plot x (+ base max-pos-per-capita y-deaths) "r-" x (+ base y-pos) "b-")
+        (pl.plot x (+ base max-pos-per-capita (* max-pos-per-capita (/ y-deaths (max y-deaths)))) "r-"
+                 x (+ base (* max-pos-per-capita (/ y-pos (max y-pos)))) "b-"
                  :linewidth 0.5)
         (pl.xlim (, 70 (inc (last x))))
-        (pl.ylim (, (* -0.03 max-pos-per-capita) (* 2.01 max-pos-per-capita)))
+        (pl.ylim (, (* -0.03 max-pos-per-capita) (* (+ cnt 0.01) max-pos-per-capita)))
         (pl.xticks []) (pl.yticks [])
         (pl.axis "off")
-        (pl.text 72 (* 1.75 max-pos-per-capita) s :fontsize 12)))))
+        (pl.text 72 (* (- cnt 0.25) max-pos-per-capita) s :fontsize 12)))))
 

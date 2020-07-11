@@ -27,12 +27,12 @@
     (json.load fp)))
 
 (defn date->doy [date &optional [has-dash False]]
-  (sv s (string date)
+  (sv s (str date)
       pos (if has-dash [0 4 5 7 8 10] [0 4 4 6 6 8])
       yr (int (cut s (get pos 0) (get pos 1)))
       mo (int (cut s (get pos 2) (get pos 3)))
       da (int (cut s (get pos 4) (get pos 5)))
-      adpm (scan (fn [acc e] (+ acc e)) [0 31 29 31 30 31 30] 0))
+      adpm (scan (fn [acc e] (+ acc e)) [0 31 29 31 30 31 30 31 31 30 31 30 31] 0))
   (+ (* (get adpm (dec mo))) da))
 
 (defn organize-daily [din]
@@ -185,6 +185,7 @@
           (pl.legend :loc "best" :fontsize (if (< (len soi) 8) None 8)
                      :ncol (if (< (len soi) 8) 1 2))
           (dont pl.text 0.7 1.12 "Updated 2 May 2020" :transform ax.transAxes))
+        (pl.xticks (range 70 200 10))
         (pl.xlim xl)
         (when (= row (dec nrow))
           (pl.xlabel "Day of year"))
@@ -220,9 +221,9 @@
   (print pop))
 
 (when-inp ["dev-doy"]
-  (for [e [20200111 20200211 20200311 20200411 20200531]]
+  (for [e [20200111 20200211 20200311 20200411 20200531 20200704]]
     (print e (date->doy e)))
-  (for [e ["2020-01-11" "2020-02-11" "2020-03-11" "2020-04-11"]]
+  (for [e ["2020-01-11" "2020-02-11" "2020-03-11" "2020-04-11" "2020-07-04"]]
     (print e (date->doy e True))))
 
 (when-inp ["dev-daily"]
@@ -239,13 +240,13 @@
                  x (npy.diff (:deadcum e)) "k-")
     (my-grid)))
 
-(when-inp ["p1" {:format string}]
-  (plot-state-data (get-state-data) ["NM" "AZ" "CA" "CO" "IL" "WA" "NC"] "p1" format))
+(when-inp ["p1" {:format str}]
+  (plot-state-data (get-state-data) ["NM" "AZ" "CA" "CO" "IL"] "p1" format))
 
-(when-inp ["p1a" {:format string}]
-  (plot-state-data (get-state-data) ["AL" "LA" "TX" "NV" "GA" "OK" "SC"] "p1a" format))
+(when-inp ["p1a" {:format str}]
+  (plot-state-data (get-state-data) ["GA" "NV" "OK" "TX" "AR" "UT" "MI"] "p1a" format))
 
-(when-inp ["p1b" {:format string}]
+(when-inp ["p1b" {:format str}]
   (sv d (get-state-data)
       soi (rank-by-roughly-current-cfr d)
       div (// (len soi) 2))
@@ -259,6 +260,7 @@
                   (, "Illinois" "Cook" 5150233)
                   (, "New Mexico" "McKinley" 71367)
                   (, "New Mexico" "San Juan" 123958)
+                  (, "California" "Yolo" 220500)
                   (, "Colorado" "Douglas" 351154)
                   (, "California" "Santa Clara" 1927852)))
 
@@ -290,10 +292,10 @@
              (* 100 (/ (get deaths i) (get cases i)))
              -1))))
 
-(when-inp ["plot-county-data" {:format string}]
+(when-inp ["plot-county-data" {:format str}]
   (sv d (parse-county-data)
-      coi (cut *counties* 0 -2)
-      clrs "krgbmcy")
+      coi (cut *counties* 0 -5)
+      clrs "krgcymb")
   (for [(, im measure) (enumerate (, "daily" "cumulative"))]
     (with [(pl-plot (, 12 6) (+ "covid19/county-" measure) :format format)]
       (for [row (range 2)
@@ -323,7 +325,7 @@
         (when (= row 1) (pl.xlabel "Day of Year"))
         (when (= idx 3) (pl.legend :loc "best"))))))
 
-(when-inp ["glance" {:format string}]
+(when-inp ["glance" {:format str}]
   (sv d (get-state-data)
       states (.keys d)
       deadcums [])
@@ -349,6 +351,9 @@
                                      (/ (max (get d s deadsym)) state-pop))
           max-hosp-per-capita (max max-hosp-per-capita
                                    (/ (max (get d s hospsym)) state-pop))))
+    (when (zero? im)
+      (sv max-pos-per-capita 8e-4
+          max-deaths-per-capita 5e-5))
     (sv fac (/ max-pos-per-capita max-deaths-per-capita)
         fac1 (/ max-pos-per-capita max-hosp-per-capita))
     (with [(pl-plot (, 14 (if (zero? im) 14.25 9.5)) (+ "covid19/glance-" meas) :format format)]
@@ -363,8 +368,10 @@
           (sv (get y-pos (slice 0 15)) 0))
         (pl.subplot 6 9 (inc i))
         (pl.plot x (* 0 x) "k-" x (* max-pos-per-capita (npy.ones (len x))) "k-"
-                 x (* 2 max-pos-per-capita (npy.ones (len x))) "k-"
                  :linewidth 0.5)
+        (when (zero? im)
+          (pl.plot x (* 2 max-pos-per-capita (npy.ones (len x))) "k-"
+                   :linewidth 0.5))
         (sv base 0 cnt 2)
         (when (zero? im)
           (when (> (max y-hosp) 0)

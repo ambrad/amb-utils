@@ -175,7 +175,7 @@
   `(do (setv ~g!box (Box))
        ~@(map (fn [s]
                 ;;            handles _ vs - in names
-                (setv g!field ((. (string (second s)) replace) "-" "_")
+                (setv g!field ((. (str (second s)) replace) "-" "_")
                       ;;      inject symbol directly
                       g!value (second s))
                 `(assoc (. ~g!box --dict--) ~g!field ~g!value))

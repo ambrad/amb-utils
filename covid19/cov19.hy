@@ -151,10 +151,13 @@
                                        [(, 0 1 2)
                                         (get e (get (, :testcum :poscum :deadcum) row))]
                                        [(, 3)
-                                        (/ (:poscum e) (:testcum e))]
+                                        (sv den (:testcum e) mask (= den 0))
+                                        (when (npy.any mask)
+                                          (sv den (.copy den)
+                                              (get den mask) 1))
+                                        (/ (:poscum e) den)]
                                        [(, 4)
-                                        (sv den (:poscum e)
-                                            mask (= den 0))
+                                        (sv den (:poscum e) mask (= den 0))
                                         (when (npy.any mask)
                                           (sv den (.copy den)
                                               (get den mask) 1))
@@ -185,7 +188,7 @@
           (pl.legend :loc "best" :fontsize (if (< (len soi) 8) None 8)
                      :ncol (if (< (len soi) 8) 1 2))
           (dont pl.text 0.7 1.12 "Updated 2 May 2020" :transform ax.transAxes))
-        (pl.xticks (range 70 200 10))
+        (pl.xticks (range 70 300 10))
         (pl.xlim xl)
         (when (= row (dec nrow))
           (pl.xlabel "Day of year"))
@@ -244,7 +247,7 @@
   (plot-state-data (get-state-data) ["NM" "AZ" "CA" "CO" "IL"] "p1" format))
 
 (when-inp ["p1a" {:format str}]
-  (plot-state-data (get-state-data) ["GA" "NV" "OK" "TX" "AR" "UT" "MI"] "p1a" format))
+  (plot-state-data (get-state-data) ["GA" "NV" "LA" "TX" "IN" "MI" "FL"] "p1a" format))
 
 (when-inp ["p1b" {:format str}]
   (sv d (get-state-data)
@@ -258,11 +261,11 @@
                   (, "California" "Orange" 3185968)
                   (, "Colorado" "Boulder" 326196)
                   (, "Illinois" "Cook" 5150233)
+                  (, "California" "Yolo" 220500)
+                  (, "California" "Santa Clara" 1927852)
                   (, "New Mexico" "McKinley" 71367)
                   (, "New Mexico" "San Juan" 123958)
-                  (, "California" "Yolo" 220500)
-                  (, "Colorado" "Douglas" 351154)
-                  (, "California" "Santa Clara" 1927852)))
+                  (, "Colorado" "Douglas" 351154)))
 
 (when-inp ["dev-county"]
   (sv d (parse-county-data)
@@ -294,7 +297,7 @@
 
 (when-inp ["plot-county-data" {:format str}]
   (sv d (parse-county-data)
-      coi (cut *counties* 0 -5)
+      coi (cut *counties* 0 -4)
       clrs "krgcymb")
   (for [(, im measure) (enumerate (, "daily" "cumulative"))]
     (with [(pl-plot (, 12 6) (+ "covid19/county-" measure) :format format)]
@@ -314,7 +317,7 @@
           (pl.semilogy x y (get clrs ic) :label (second county)))
         (my-grid)
         (sv xl (pl.xlim))
-        (pl.xticks (range 70 200 10))
+        (pl.xticks (range 70 300 10))
         (pl.xlim 70 (second xl))
         (pl.title (+ (if (zero? im)
                          "Daily new"
@@ -361,9 +364,12 @@
         (sv e (get d s)
             x (:date e)
             pop (get-state-pop s)
-            y-deaths (* fac (/ (deadsym e) pop))
+            deaths (/ (deadsym e) pop)
+            y-deaths (* fac deaths)
             y-pos (/ (possym e) pop)
-            y-hosp (* fac1 (/ (hospsym e) pop)))
+            y-hosp (* fac1 (/ (hospsym e) pop))
+            plot-thin (< (max deaths) (* (if (zero? im) 0.2 0.1) max-deaths-per-capita))
+            plot-thin True)
         (when (and (zero? im) (in s (, "KY" "MD" "KS" "IN")))
           (sv (get y-pos (slice 0 15)) 0))
         (pl.subplot 6 9 (inc i))
@@ -376,17 +382,18 @@
         (when (zero? im)
           (when (> (max y-hosp) 0)
             (pl.plot x y-hosp "g-")  
-            (pl.plot x (* max-pos-per-capita (/ y-hosp (max y-hosp))) "g-"
-                     :linewidth 0.5))
+            (when plot-thin
+              (pl.plot x (* max-pos-per-capita (/ y-hosp (max y-hosp))) "g-"
+                       :linewidth 0.5)))
           (sv base max-pos-per-capita
               cnt 3))
         (pl.plot x (+ base max-pos-per-capita y-deaths) "r-" x (+ base y-pos) "b-")
-        (pl.plot x (+ base max-pos-per-capita (* max-pos-per-capita (/ y-deaths (max y-deaths)))) "r-"
-                 x (+ base (* max-pos-per-capita (/ y-pos (max y-pos)))) "b-"
-                 :linewidth 0.5)
+        (when plot-thin
+          (pl.plot x (+ base max-pos-per-capita (* max-pos-per-capita (/ y-deaths (max y-deaths)))) "r-"
+                   x (+ base (* max-pos-per-capita (/ y-pos (max y-pos)))) "b-"
+                   :linewidth 0.5))
         (pl.xlim (, 70 (inc (last x))))
         (pl.ylim (, (* -0.03 max-pos-per-capita) (* (+ cnt 0.01) max-pos-per-capita)))
         (pl.xticks []) (pl.yticks [])
         (pl.axis "off")
         (pl.text 72 (* (- cnt 0.25) max-pos-per-capita) s :fontsize 12)))))
-

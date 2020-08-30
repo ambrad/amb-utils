@@ -1,6 +1,6 @@
-Updated 11 July 2020
+Updated 30 Aug 2020
 
-<p>Contents
+<p> Contents
 <ul>
 <li><a href="#glance">All states at a glance</a></li>
 <li><a href="#county">Counties of interest</a></li>
@@ -10,7 +10,7 @@ Updated 11 July 2020
 <li><a href="#sources">Data sources</a></li>
 </ul>
 
-<p id="glance"> States at a glance. Blue is positive cases; red is deaths; green is currently hospitalized. Y axis is linear. <b>Thick lines</b>: Numbers are per capita. The Y axis is the same for every state; per capita numbers can be compared between states. Deaths and cases are not on the same scale. <b>Thin lines</b> cannot be compared between states; they are intended to show within-state trends as a function of time. Cumulative and daily.
+<p id="glance"> States at a glance. Blue is positive cases; red is deaths; green is currently hospitalized. Y axis is linear. <b>Thick lines</b>: Numbers are per capita. The Y axis is the same for every state; per capita numbers can be compared between states. Deaths, cases, and hospitalizations are not on the same scale. <b>Thin lines</b> cannot be compared between states; they are intended to show within-state trends as a function of time. Cumulative and daily.
 <p><img align="top" border=2 src="covid19/glance-cumulative.png?STRING">
 <p><img align="top" border=2 src="covid19/glance-daily.png?STRING">
 
@@ -24,27 +24,29 @@ Updated 11 July 2020
 <p>
 <img align="top" border=2 src="covid19/p1-daily.png?STRING">
 <img align="top" border=2 src="covid19/p1-cumulative.png?STRING">
-<img align="top" border=2 src="covid19/p1-cumulative-abs.png?STRING">
+<!--img align="top" border=2 src="covid19/p1-cumulative-abs.png?STRING"-->
 
 <p id="otherstates"> Some other states
 <p>
 <img align="top" border=2 src="covid19/p1a-daily.png?STRING">
 <img align="top" border=2 src="covid19/p1a-cumulative.png?STRING">
-<img align="top" border=2 src="covid19/p1a-cumulative-abs.png?STRING">
+<!--img align="top" border=2 src="covid19/p1a-cumulative-abs.png?STRING"-->
 
 <p id="links">Our World in Data plots I find particularly informative:
-<p><a href="https://ourworldindata.org/grapher/total-deaths-covid-19?yScale=log&country=COUNTRIES">Cumulative deaths</a>
-<p><a href="https://ourworldindata.org/grapher/total-covid-deaths-per-million?tab=chart&yScale=log&country=COUNTRIES">Cumulative deaths per million people</a>
-<p><a href="https://ourworldindata.org/grapher/daily-deaths-covid-19?tab=chart&yScale=log&country=COUNTRIES">Daily new deaths</a>
-<p><a href="https://ourworldindata.org/grapher/new-covid-deaths-per-million?tab=chart&yScale=log&country=COUNTRIES">Daily new deaths per million people</a>
-<p><a href="https://ourworldindata.org/grapher/daily-covid-deaths-per-million-7-day-average?tab=chart&yScale=log&country=COUNTRIES">Daily new deaths per million people, moving 7-day average</a>
-<p><a href="https://ourworldindata.org/grapher/total-cases-covid-19?tab=chart&yScale=log&country=COUNTRIES">Cumulative cases</a>
-<p><a href="https://ourworldindata.org/grapher/daily-cases-covid-19?tab=chart&yScale=log&country=COUNTRIES">Daily new cases</a>
-<p><a href="https://ourworldindata.org/grapher/new-covid-cases-per-million?tab=chart&yScale=log&time=2020-02-13..&country=COUNTRIES">Daily new cases per million people</a>
+<ul>
+<li><a href="https://ourworldindata.org/grapher/total-deaths-covid-19?yScale=log&country=COUNTRIES">Cumulative deaths</a></li>
+<li><a href="https://ourworldindata.org/grapher/total-covid-deaths-per-million?tab=chart&yScale=log&country=COUNTRIES">Cumulative deaths per million people</a></li>
+<li><a href="https://ourworldindata.org/grapher/daily-deaths-covid-19?tab=chart&yScale=log&country=COUNTRIES">Daily new deaths</a></li>
+<li><a href="https://ourworldindata.org/grapher/new-covid-deaths-per-million?tab=chart&yScale=log&country=COUNTRIES">Daily new deaths per million people</a></li>
+<li><a href="https://ourworldindata.org/grapher/daily-covid-deaths-per-million-7-day-average?tab=chart&yScale=log&country=COUNTRIES">Daily new deaths per million people, moving 7-day average</a></li>
+<li><a href="https://ourworldindata.org/grapher/total-cases-covid-19?tab=chart&yScale=log&country=COUNTRIES">Cumulative cases</a></li>
+<li><a href="https://ourworldindata.org/grapher/daily-cases-covid-19?tab=chart&yScale=log&country=COUNTRIES">Daily new cases</a></li>
+<li><a href="https://ourworldindata.org/grapher/new-covid-cases-per-million?tab=chart&yScale=log&time=2020-02-13..&country=COUNTRIES">Daily new cases per million people</a></li>
+</ul>
 
 <p id="sources">Sources:
 <ul>
 <li>Page generated from <a href="https://github.com/ambrad/amb-utils/tree/cov19/covid19">this github repo/branch</a></li>
-<li><p>State data: <a href="https://covidtracking.com/api/v1/states/daily.json">https://covidtracking.com/api/v1/states/daily.json</a></li>
-<li><p>County data: <a href="https://github.com/nytimes/covid-19-data">https://github.com/nytimes/covid-19-data</a></li>
+<li>State data: <a href="https://covidtracking.com/api/v1/states/daily.json">https://covidtracking.com/api/v1/states/daily.json</a></li>
+<li>County data: <a href="https://github.com/nytimes/covid-19-data">https://github.com/nytimes/covid-19-data</a></li>
 </ul>

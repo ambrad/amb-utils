@@ -302,6 +302,10 @@ if there is only one visible window."
        '(("\\.F\\'" . f90-mode))
        auto-mode-alist))
 
+(dolist (kw '("%" "+" "-" "<" ">" "<=" ">=" "*" "/" "=>" "/=" ":" "::" ","))
+  (font-lock-add-keywords 'f90-mode
+                          `((,kw . font-lock-builtin-face))))
+
 (fset 'amb-include "#include \"/home/ambradl/climate/sik/hommexx/dbg.hpp\"")
 (fset 'amb-omp "#if (defined COLUMN_OPENMP && !defined __bg__)\n!$omp\n#endif")
 

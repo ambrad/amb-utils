@@ -1,6 +1,8 @@
 (require [amb [*]])
 (import [amb [*]] json)
 
+(sv *xticks* 20)
+
 (defn scan [f coll init]
   (sv out [] acc init)
   (for [e coll]
@@ -31,8 +33,10 @@
       pos (if has-dash [0 4 5 7 8 10] [0 4 4 6 6 8])
       yr (int (cut s (get pos 0) (get pos 1)))
       mo (int (cut s (get pos 2) (get pos 3)))
+      mo (if (= yr 2021) (+ 12 mo) mo)
       da (int (cut s (get pos 4) (get pos 5)))
-      adpm (scan (fn [acc e] (+ acc e)) [0 31 29 31 30 31 30 31 31 30 31 30 31] 0))
+      adpm (scan (fn [acc e] (+ acc e)) [0 31 29 31 30 31 30 31 31 30 31 30 31 ; end year
+                                         31 30] 0))
   (+ (* (get adpm (dec mo))) da))
 
 (defn organize-daily [din]
@@ -188,7 +192,7 @@
           (pl.legend :loc "best" :fontsize (if (< (len soi) 8) None 8)
                      :ncol (if (< (len soi) 8) 1 2))
           (dont pl.text 0.7 1.12 "Updated 2 May 2020" :transform ax.transAxes))
-        (pl.xticks (range 70 300 10))
+        (pl.xticks (range 70 350 *xticks*))
         (pl.xlim xl)
         (when (= row (dec nrow))
           (pl.xlabel "Day of year"))
@@ -224,9 +228,11 @@
   (print pop))
 
 (when-inp ["dev-doy"]
-  (for [e [20200111 20200211 20200311 20200411 20200531 20200704]]
+  (for [e [20200111 20200211 20200311 20200411 20200531 20201231
+           20210105]]
     (print e (date->doy e)))
-  (for [e ["2020-01-11" "2020-02-11" "2020-03-11" "2020-04-11" "2020-07-04"]]
+  (for [e ["2020-01-11" "2020-02-11" "2020-03-11" "2020-04-11" "2020-12-31"
+           "2021-01-05"]]
     (print e (date->doy e True))))
 
 (when-inp ["dev-daily"]
@@ -247,7 +253,7 @@
   (plot-state-data (get-state-data) ["NM" "AZ" "CA" "CO" "IL"] "p1" format))
 
 (when-inp ["p1a" {:format str}]
-  (plot-state-data (get-state-data) ["GA" "NV" "LA" "TX" "IN" "MI" "FL"] "p1a" format))
+  (plot-state-data (get-state-data) ["ID" "ND" "SD" "IN" "MI" "RI"] "p1a" format))
 
 (when-inp ["p1b" {:format str}]
   (sv d (get-state-data)
@@ -317,7 +323,7 @@
           (pl.semilogy x y (get clrs ic) :label (second county)))
         (my-grid)
         (sv xl (pl.xlim))
-        (pl.xticks (range 70 300 10))
+        (pl.xticks (range 70 350 *xticks*))
         (pl.xlim 70 (second xl))
         (pl.title (+ (if (zero? im)
                          "Daily new"
@@ -355,7 +361,7 @@
           max-hosp-per-capita (max max-hosp-per-capita
                                    (/ (max (get d s hospsym)) state-pop))))
     (when (zero? im)
-      (sv max-pos-per-capita 8e-4
+      (sv max-pos-per-capita 16e-4
           max-deaths-per-capita 5e-5))
     (sv fac (/ max-pos-per-capita max-deaths-per-capita)
         fac1 (/ max-pos-per-capita max-hosp-per-capita))

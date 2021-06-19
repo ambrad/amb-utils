@@ -1,9 +1,30 @@
+;; .emacs
+
+;;; uncomment this line to disable loading of "default.el" at startup
+;; (setq inhibit-default-init t)
+
+;; enable visual feedback on selections
+;(setq transient-mark-mode t)
+
 ;; default to better frame titles
+
+;; Added by Package.el.  This must come before configurations of
+;; installed packages.  Don't delete this line.  If you don't want it,
+;; just comment it out by adding a semicolon to the start of the line.
+;; You may delete these explanatory comments.
+(package-initialize)
+
 (setq frame-title-format
       (concat  "%b - emacs@" (system-name)))
 
 ;; default to unified diffs
 (setq diff-switches "-u")
+
+;; always end a file with a newline
+;(setq require-final-newline 'query)
+
+;;; uncomment for CJK utf-8 support for non-Asian users
+;; (require 'un-define)
 
 ;;; Allow extra space at the end of the line
 (setq-default fill-column 80)
@@ -28,12 +49,12 @@
   (setq fill-column 80))
 (setq matlab-mode-hook `my-matlab-mode-hook)
 
-(autoload 'python-mode "~/emacs/python-mode.el" "Enter Python mode." t)
-(setq auto-mode-alist (cons '("\\.py\\'" . python-mode) auto-mode-alist))
+;;(autoload 'python-mode "~/emacs/python-mode.el" "Enter Python mode." t)
+;;(setq auto-mode-alist (cons '("\\.py\\'" . python-mode) auto-mode-alist))
 (defun my-python-mode-hook ()
   (set-face-foreground `py-builtins-face "red")
   (set-face-foreground `py-pseudo-keyword-face "red"))
-(setq python-mode-hook `my-python-mode-hook)
+;;(setq python-mode-hook `my-python-mode-hook)
 
 (autoload 'js2-mode "~/emacs/js2-mode.elc" "Enter JavaScript mode." t)
 (setq auto-mode-alist (cons '("\\.js\\'" . js2-mode) auto-mode-alist))
@@ -51,7 +72,12 @@
 
 ;(setq-default auto-fill-function 'do-auto-fill)
 (setq-default auto-fill-function nil)
-(setq-default text-mode-hook 'turn-on-auto-fill)
+(setq-default text-mode-hook
+              #'(lambda ()
+                  (turn-on-auto-fill)
+                  ;; disable new indentation feature in text-mode; see
+                  ;; https://emacs.stackexchange.com/questions/5939/how-to-disable-auto-indentation-of-new-lines
+                  (electric-indent-mode -1)))
 (setq-default c-mode-hook 'turn-on-auto-fill)
 (setq-default fill-column 80)
 (setq-default line-number-mode t)
@@ -68,32 +94,31 @@
   (set-face-foreground `bold "black")
   (set-face-foreground `font-lock-function-name-face "blue")
   (set-face-foreground `font-lock-comment-face "firebrick4")
-  (set-face-foreground `font-lock-string-face "purple")
-  (set-face-foreground `font-lock-type-face "red")
-  (set-face-foreground `font-lock-keyword-face "blue")
-  (set-face-foreground `font-lock-builtin-face "brown")
+  (set-face-foreground `font-lock-string-face "SlateBlue4")
+  (set-face-foreground `font-lock-type-face "DeepPink4")
+  (set-face-foreground `font-lock-keyword-face "dark blue")
+  (set-face-foreground `font-lock-builtin-face "medium blue")
   (set-face-foreground `font-lock-constant-face "dark green")
-  (set-face-foreground `font-lock-negation-char-face "red")
+  (set-face-foreground `font-lock-negation-char-face "DeepPink4")
   (set-face-foreground `font-lock-variable-name-face "dark green")
-  ;(set-background-color "gray88") ;wb
-  (set-background-color "gray70")
+  (set-face-foreground `font-lock-comment-delimiter-face "dark green")
+  (set-background-color "gray50")
   (set-face-foreground `default "black"))
 ; Black background, my favorite.
 (defun bg-black ()
   (interactive)
   (set-face-foreground `bold "lemonchiffon1")
-  (set-face-foreground `font-lock-function-name-face "deep sky blue")
-  (set-face-foreground `font-lock-comment-face "sea green") ;"indian red")
-  (set-face-foreground `font-lock-string-face "gray49") ; "DarkOrange3" "IndianRed1"
-  (set-face-foreground `font-lock-type-face "DarkOrange3")
+  (set-face-foreground `font-lock-function-name-face "DeepSkyBlue1")
+  (set-face-foreground `font-lock-comment-face "gray60") ;"indian red")
+  (set-face-foreground `font-lock-string-face "gray66")
+  (set-face-foreground `font-lock-type-face "DarkGoldenrod3")
   (set-face-foreground `font-lock-keyword-face "forest green")
-  ;;(set-face-foreground `font-lock-builtin-face "deep sky blue")
-  (set-face-foreground `font-lock-builtin-face "forest green")
-  (set-face-foreground `font-lock-constant-face "DodgerBlue1")
-  (set-face-foreground `font-lock-variable-name-face "deep sky blue")
+  (set-face-foreground `font-lock-builtin-face "sky blue")
+  (set-face-foreground `font-lock-constant-face "tan2")
+  (set-face-foreground `font-lock-variable-name-face "light blue")
   (set-face-foreground `font-lock-negation-char-face "green")
   (set-background-color "black") ;bb
-  (set-face-foreground `default "gray70"))
+  (set-face-foreground `default "gray85"))
 (bg-black)
 
 ;(set-face-attribute 'comint-highlight-prompt nil :inherit nil)
@@ -116,10 +141,10 @@
       [?\C-a ?\C-  ?\C-e ?\M-w ?\C-x ?o ?\C-y])
 ;(global-set-key [f6] 'shyankl)
 ;(global-set-key [f6] 'shyank)
-(fset 'previous-shell-command-line "\C-rl@\C-x")
+(fset 'previous-shell-command-line "\C-r@\C-x")
 (global-set-key [f11] 'previous-shell-command-line)
 
-;(fset 'toend [escape ?>]) (global-set-key [f5] 'toend)
+(fset 'toend [escape ?>]) (global-set-key [f5] 'toend)
 (fset 'cdup "../") (global-set-key [f7] 'cdup)
 
 ;(global-set-key (kbd "M-[ d") `backward-word)
@@ -138,7 +163,7 @@
 (global-set-key (kbd "C-n") 'rename-buffer)
 (global-set-key (kbd "C-q") 'query-replace)
 (global-set-key (kbd "C-`") 'compilation-shell-minor-mode)
-(global-set-key (kbd "C-f") 'auto-fill-mode)
+;(global-set-key (kbd "C-f") 'auto-fill-mode)
 
 (defun vu () (interactive) (shell-command "amixer -q sset Master 3%+"))
 (defun vd () (interactive) (shell-command "amixer -q sset Master 3%-"))
@@ -237,17 +262,20 @@ Dmitriy Igrishin's patched version of comint.el."
 
 (when (fboundp 'winner-mode) (winner-mode 1))
 
-(add-to-list 'load-path "~ambradl/emacs/")
+(add-to-list 'load-path "~ambrad/emacs/")
 (require 'lcomp)
 (lcomp-mode 1)
 
 ;;; fonts
 ;(set-default-font "-misc-fixed-medium-r-semicondensed-*-13-120-75-75-c-60-koi8-*")
-;(add-to-list 'default-frame-alist '(font . "DejaVu Sans Mono-10"))
+;;(add-to-list 'default-frame-alist '(font . "DejaVu Sans Mono-10"))
+;(set-default-font "-PfEd-DejaVu Sans Mono-normal-normal-normal-*-15-*-*-*-m-0-iso10646-1")
 ;; Useful:
 ;(print (font-family-list))
 ;(set-frame-font "DejaVu Sans Mono-10" t)
-(set-default-font "-PfEd-DejaVu Sans Mono-normal-normal-normal-*-15-*-*-*-m-0-fontset-startup")
+;(set-default-font "-DAMA-Ubuntu Mono-normal-normal-normal-*-17-*-*-*-m-0-iso10646-1")
+(set-default-font "-DAMA-Ubuntu Mono-normal-normal-normal-*-18-*-*-*-m-0-iso10646-1")
+;(set-default-font "-DAMA-Ubuntu Mono-normal-normal-normal-*-19-*-*-*-m-0-iso10646-1")
 
 (setq default-frame-alist
       '((top . 0) (left . 99)
@@ -302,7 +330,12 @@ if there is only one visible window."
        '(("\\.F\\'" . f90-mode))
        auto-mode-alist))
 
-(fset 'amb-include "#include \"/home/ambradl/climate/sik/hommexx/dbg.hpp\"")
+(dolist (kw '("%" "+" "-" "<" ">" "<=" ">=" "*" "/" "=>" "/=" ":" "::" ","))
+  (font-lock-add-keywords 'f90-mode
+                          `((,kw . font-lock-builtin-face))))
+
+(fset 'amb-include "#include \"/home/ambrad/repo/sik/hommexx/dbg.hpp\"")
+(fset 'amb-hy "(require [amb3 [*]]) (import [amb3 [*]])")
 (fset 'amb-omp "#if (defined COLUMN_OPENMP && !defined __bg__)\n!$omp\n#endif")
 
 (defun amb-shells (buf1-name buf1-command buf2-name buf2-command)
@@ -374,24 +407,24 @@ if there is only one visible window."
   (keyboard-translate (get-byte 0 "]") (get-byte 0 "]"))
   (keyboard-translate (get-byte 0 "{") (get-byte 0 "{"))
   (keyboard-translate (get-byte 0 "}") (get-byte 0 "}")))
-(nice-paren)
+;;(nice-paren)
 ;;(undo-paren)
 
+(require 'comint)
 (require 'hy-mode)
 (setq hy-mode-inferior-lisp-command "~/.local/bin/hy")
 
 (require 'autopair)
 (require 'paredit)
 (require 'rainbow-delimiters)
-(dolist (mh '(hy scheme lisp emacs-lisp inferior-lisp inferior-scheme))
+(dolist (mh '(hy scheme lisp emacs-lisp inferior-lisp f90 c++ inferior-hy inferior-scheme))
   (let ((hook-name (intern (concat (symbol-name mh) "-mode-hook"))))
     (add-hook hook-name '(lambda () (show-paren-mode 1) (autopair-mode)))
     (add-hook hook-name #'rainbow-delimiters-mode)))
 
 (add-hook 'c++-mode-hook #'rainbow-delimiters-mode)
-(add-hook 'c++-mode-hook #'autopair-mode)
-(add-hook 'f90-mode-hook #'rainbow-delimiters-mode)
-(add-hook 'f90-mode-hook #'autopair-mode)
+(add-hook 'tex-mode-hook #'rainbow-delimiters-mode)
+(add-hook 'tex-mode-hook #'turn-off-auto-fill)
 
 (global-set-key [f10] 'mark-sexp)
 (global-set-key [f9] 'mark-sexp)
@@ -399,7 +432,7 @@ if there is only one visible window."
 (global-set-key (kbd "M-r") 'raise-sexp)
 (global-set-key (kbd "M-t") 'transpose-sexps)
 (global-set-key (kbd "M-o") 'oneline)
-;;(global-set-key (kbd "M-o") 'reverse-args-interactive)
+(global-set-key (kbd "M-k") 'kill-whitespace-until)
 (global-set-key (kbd "M-m") 'mark-sexp)
 (global-set-key (kbd "M-b") 'paredit-forward-barf-sexp)
 (global-set-key (kbd "M-s") 'paredit-forward-slurp-sexp)
@@ -410,19 +443,30 @@ if there is only one visible window."
 ;; Nice for debugging lisp in inferior-lisp.
 (global-set-key [Scroll_Lock down] 'paredit-forward-down)  ; 'lisp-eval-last-sexp
 (global-set-key (kbd "M-d") 'paredit-forward-down)
-(global-set-key (kbd "M-n") 'paredit-forward-up)
 (global-set-key [Scroll_Lock up] 'paredit-backward-up)
 (global-set-key (kbd "M-u") 'paredit-backward-up)
 (global-set-key [Scroll_Lock right] 'forward-sexp)
 (global-set-key (kbd "M-f") 'forward-sexp)
-(global-set-key (kbd "M-d") 'backward-sexp)
 (global-set-key [Scroll_Lock left] 'backward-sexp)
+(global-set-key (kbd "M-d") 'backward-sexp)
 
 (global-set-key (kbd "M-i")
                 #'(lambda ()
                     (interactive)
                     (paredit-backward-up)
                     (forward-char) (insert-char ? ) (backward-char)))
+(global-set-key (kbd "M-n")
+                #'(lambda ()
+                    (interactive)
+                    (paredit-forward-up)
+                    ;(forward-char)
+                    ))
+(global-set-key (kbd "M-N")
+                #'(lambda ()
+                    (interactive)
+                    (paredit-forward-up)
+                    (forward-char)
+                    ))
 
 (defun pr (beg end)
   (interactive "r")
@@ -434,44 +478,54 @@ if there is only one visible window."
 (setq Buffer-menu-name-width 40)
 
 (custom-set-variables
- '(c-offsets-alist (quote ((innamespace . 0) (inextern-lang . 0))))
- '(rainbow-delimiters-max-face-count 5))
-(if 1
+ '(c-offsets-alist (quote ((innamespace . 0)))))
+
+(if t
+    (progn
+      (custom-set-variables
+       '(rainbow-delimiters-max-face-count 5))
+      (custom-set-faces
+       '(rainbow-delimiters-depth-4-face ((t (:inherit rainbow-delimiters-base-face :foreground "dark green"))))
+       '(rainbow-delimiters-depth-2-face ((t (:inherit rainbow-delimiters-base-face :foreground "dark goldenrod"))))
+       '(rainbow-delimiters-depth-1-face ((t (:inherit rainbow-delimiters-base-face :foreground "tan4"))))
+       '(rainbow-delimiters-depth-3-face ((t (:inherit rainbow-delimiters-base-face :foreground "pink4"))))
+       '(rainbow-delimiters-depth-5-face ((t (:inherit rainbow-delimiters-base-face :foreground "sienna"))))))
+  (progn
+    (custom-set-variables
+     '(rainbow-delimiters-max-face-count 1))
     (custom-set-faces
-     '(rainbow-delimiters-depth-4-face ((t (:inherit rainbow-delimiters-base-face :foreground "dark green"))))
-     '(rainbow-delimiters-depth-2-face ((t (:inherit rainbow-delimiters-base-face :foreground "dark olive green"))))
-     '(rainbow-delimiters-depth-1-face ((t (:inherit rainbow-delimiters-base-face :foreground "chocolate4"))))
-     '(rainbow-delimiters-depth-3-face ((t (:inherit rainbow-delimiters-base-face :foreground "saddle brown"))))
-     '(rainbow-delimiters-depth-5-face ((t (:inherit rainbow-delimiters-base-face :foreground "dark olive green")))))
-  (custom-set-faces
-     '(rainbow-delimiters-depth-1-face ((t (:inherit rainbow-delimiters-base-face :foreground "SlateBlue3"))))
-     '(rainbow-delimiters-depth-2-face ((t (:inherit rainbow-delimiters-base-face :foreground "MediumPurple3"))))
-     '(rainbow-delimiters-depth-3-face ((t (:inherit rainbow-delimiters-base-face :foreground "MediumOrchid3"))))
-     '(rainbow-delimiters-depth-4-face ((t (:inherit rainbow-delimiters-base-face :foreground "orchid4"))))
-     '(rainbow-delimiters-depth-5-face ((t (:inherit rainbow-delimiters-base-face :foreground "purple3"))))))
+     '(rainbow-delimiters-depth-1-face ((t (:inherit rainbow-delimiters-base-face :foreground "dim gray")))))))
 
 (fset 'save-and-run-in-other
       [?\C-x ?\C-s ?\C-x ?o ?\M-> ?\M-p return ?\C-x ?o])
 (global-set-key (kbd "C-7") 'save-and-run-in-other)
+(global-set-key (kbd "C-f") 'save-and-run-in-other)
 
-(global-set-key [f3] 'rainbow-delimiters-mode)
+(global-set-key [f3] #'(lambda ()
+                         (interactive)
+                         (rainbow-delimiters-mode)
+                         (font-lock-fontify-buffer)))
 
 (global-set-key [f6] 'save-buffer)
 (global-set-key [f5] 'other-window)
 
-;; slime
+(if 't
+    (progn
+      (global-set-key [f8] 'scheme-send-last-sexp)
+      (autoload 'scheme-mode "cmuscheme" "Major mode for Scheme." t) 
+      (autoload 'run-scheme "cmuscheme" "Switch to interactive Scheme buffer." t)))
+
+;;(setq scheme-program-name "scheme")
+(setq scheme-program-name "chezscheme9.5")
+
 (if nil
     (progn
-      (add-to-list 'load-path "~/stage/slime-2.22")
-      (require 'slime-autoloads)
-      (setq inferior-lisp-program "sbcl")))
+      (setq geiser-chez-binary "/usr/bin/chezscheme9.5")
+      (setq geiser-mit-binary "mit-scheme")
+      (setq geiser-active-implementations '(chez mit guile))
+      (setq geiser-repl-query-on-kill-p nil)))
 
-(if 1
-    (progn
-      (setq scheme-program-name "guile")
-      (fset 'send-last-sexp [?\C-x ?\C-e])
-      (global-set-key [f8] 'send-last-sexp)))
+(fset 'my-eval-prev-sexp [?\C-c ?\C-e])
+(global-set-key [f8] 'my-eval-prev-sexp)
 
-(setq display-time-default-load-average nil)
-(setq display-time-mail-file 0)
-(display-time)
+(setq sentence-end-double-space nil)

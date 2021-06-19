@@ -1,4 +1,4 @@
-Updated 30 Dec 2020
+Updated 7 Mar 2021. This is the final update because the primary data source has ended its data collection.
 
 <p> Contents
 <ul>
@@ -9,8 +9,9 @@ Updated 30 Dec 2020
 <li><a href="#links">Links to other useful pages</a></li>
 <li><a href="#sources">Data sources</a></li>
 </ul>
+Numbers on x axis are days since 1 Jan 2020.
 
-<p id="glance"> States at a glance. Blue is positive cases; red is deaths; green is currently hospitalized. Y axis is linear. <b>Thick lines</b>: Numbers are per capita. The Y axis is the same for every state; per capita numbers can be compared between states. Deaths, cases, and hospitalizations are not on the same scale. <b>Thin lines</b> cannot be compared between states; they are intended to show within-state trends as a function of time. Cumulative and daily.
+<p id="glance"> States at a glance. Blue is positive cases; red is deaths; green is currently hospitalized. Y axis is linear. <!--<b>Thick lines</b>:--> Numbers are per capita. The Y axis is the same for every state; per capita numbers can be compared between states. Deaths, cases, and hospitalizations are not on the same scale. <!--<b>Thin lines</b> cannot be compared between states; they are intended to show within-state trends as a function of time.--> Cumulative and daily.
 <p><img align="top" border=2 src="covid19/glance-cumulative.png?STRING">
 <p><img align="top" border=2 src="covid19/glance-daily.png?STRING">
 

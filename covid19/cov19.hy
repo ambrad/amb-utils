@@ -1,7 +1,7 @@
 (require [amb [*]])
 (import [amb [*]] json)
 
-(sv *xticks* 20)
+(sv *xticks* 20 *xend* 450)
 
 (defn scan [f coll init]
   (sv out [] acc init)
@@ -136,7 +136,7 @@
   (for [yax (range 3)]
     (sv permil (< yax 2)
         nrow (case/eq yax [0 4] [1 5] [2 3]))
-    (with [(pl-plot (, 6 (* 3 nrow))
+    (with [(pl-plot (, 8.26 (* 3 nrow))
                     (.format "covid19/{}-{}" filename (get namelo yax)) :format format)]
       (for [row (range nrow)]
         (sv ax (pl.subplot nrow 1 (inc row)))
@@ -192,7 +192,7 @@
           (pl.legend :loc "best" :fontsize (if (< (len soi) 8) None 8)
                      :ncol (if (< (len soi) 8) 1 2))
           (dont pl.text 0.7 1.12 "Updated 2 May 2020" :transform ax.transAxes))
-        (pl.xticks (range 70 350 *xticks*))
+        (pl.xticks (range 70 *xend* *xticks*))
         (pl.xlim xl)
         (when (= row (dec nrow))
           (pl.xlabel "Day of year"))
@@ -306,7 +306,7 @@
       coi (cut *counties* 0 -4)
       clrs "krgcymb")
   (for [(, im measure) (enumerate (, "daily" "cumulative"))]
-    (with [(pl-plot (, 12 6) (+ "covid19/county-" measure) :format format)]
+    (with [(pl-plot (, 16.5 6) (+ "covid19/county-" measure) :format format)]
       (for [row (range 2)
             col (range 2)]
         (sv idx (inc (+ (* 2 row) col)))
@@ -323,7 +323,7 @@
           (pl.semilogy x y (get clrs ic) :label (second county)))
         (my-grid)
         (sv xl (pl.xlim))
-        (pl.xticks (range 70 350 *xticks*))
+        (pl.xticks (range 70 *xend* *xticks*))
         (pl.xlim 70 (second xl))
         (pl.title (+ (if (zero? im)
                          "Daily new"
@@ -332,7 +332,7 @@
                      (get (, "cases" "cases per million people"
                              "deaths" "deaths per million people") (dec idx))))
         (when (= row 1) (pl.xlabel "Day of Year"))
-        (when (= idx 3) (pl.legend :loc "best"))))))
+        (when (= idx 1) (pl.legend :loc (if (zero? im) "upper left" "best")))))))
 
 (when-inp ["glance" {:format str}]
   (sv d (get-state-data)
@@ -365,7 +365,8 @@
           max-deaths-per-capita 5e-5))
     (sv fac (/ max-pos-per-capita max-deaths-per-capita)
         fac1 (/ max-pos-per-capita max-hosp-per-capita))
-    (with [(pl-plot (, 14 (if (zero? im) 14.25 9.5)) (+ "covid19/glance-" meas) :format format)]
+    (with [(pl-plot (, 16.5 (* (/ 8 7) (if (zero? im) 14.25 9.5)))
+                    (+ "covid19/glance-" meas) :format format)]
       (for [(, i s) (enumerate states)]
         (sv e (get d s)
             x (:date e)
@@ -375,31 +376,33 @@
             y-pos (/ (possym e) pop)
             y-hosp (* fac1 (/ (hospsym e) pop))
             plot-thin (< (max deaths) (* (if (zero? im) 0.2 0.1) max-deaths-per-capita))
-            plot-thin True)
+            plot-thin False
+            lw-thin (if (zero? im) 0.25 0.5)
+            lw-thick (if (zero? im) 0.75 1))
         (when (and (zero? im) (in s (, "KY" "MD" "KS" "IN")))
           (sv (get y-pos (slice 0 15)) 0))
-        (pl.subplot 6 9 (inc i))
+        (pl.subplot 7 8 (inc i))
         (pl.plot x (* 0 x) "k-" x (* max-pos-per-capita (npy.ones (len x))) "k-"
-                 :linewidth 0.5)
+                 :linewidth lw-thin)
         (when (zero? im)
           (pl.plot x (* 2 max-pos-per-capita (npy.ones (len x))) "k-"
-                   :linewidth 0.5))
+                   :linewidth lw-thin))
         (sv base 0 cnt 2)
         (when (zero? im)
           (when (> (max y-hosp) 0)
-            (pl.plot x y-hosp "g-")  
+            (pl.plot x y-hosp "g-" :linewidth lw-thick)
             (when plot-thin
               (pl.plot x (* max-pos-per-capita (/ y-hosp (max y-hosp))) "g-"
-                       :linewidth 0.5)))
+                       :linewidth lw-thin)))
           (sv base max-pos-per-capita
               cnt 3))
-        (pl.plot x (+ base max-pos-per-capita y-deaths) "r-" x (+ base y-pos) "b-")
+        (pl.plot x (+ base max-pos-per-capita y-deaths) "r-" x (+ base y-pos) "b-" :linewidth lw-thick)
         (when plot-thin
           (pl.plot x (+ base max-pos-per-capita (* max-pos-per-capita (/ y-deaths (max y-deaths)))) "r-"
                    x (+ base (* max-pos-per-capita (/ y-pos (max y-pos)))) "b-"
-                   :linewidth 0.5))
+                   :linewidth lw-thin))
         (pl.xlim (, 70 (inc (last x))))
         (pl.ylim (, (* -0.03 max-pos-per-capita) (* (+ cnt 0.01) max-pos-per-capita)))
         (pl.xticks []) (pl.yticks [])
         (pl.axis "off")
-        (pl.text 72 (* (- cnt 0.25) max-pos-per-capita) s :fontsize 12)))))
+        (pl.text 72 (* (- cnt lw-thin) max-pos-per-capita) s :fontsize 12)))))

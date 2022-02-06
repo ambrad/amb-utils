@@ -38,10 +38,11 @@
   (sv wsu [] wsn [])
   (for [i (range (len (first words)))]
     (for [w ws]
-      (if (= (len (set w)) (- (len w) i))
-          (.append wsu w)
-          (.append wsn w))))
-  (+ wsu wsn))
+      (when (= (len (set w)) (- (len w) i))
+        (.append wsn w))))
+  (sv out (+ wsu wsn))
+  (assert (= (len out (len words))))
+  out)
 
 (defclass Game []
   (defn --init-- [me words word]
@@ -49,10 +50,10 @@
     (sv me.words words
         me.word word
         me.K (len me.word)
-        me.nturn 20
+        me.nturn 999
         me.state 'play me.cnt 0))
 
-  (defn input [me word]
+  (defn input [me word &optional [quiet False]]
     (inc! me.cnt)
     (unless (and (= (len me.word) me.K))
       (me.you-lose (.format "word '{}' doesn't have {} letters" word me.K))
@@ -68,19 +69,22 @@
             [:else
              (.append out-list c)
              (+= ln " ")]))
-    (print word)
-    (print ln)
+    (unless quiet
+      (print word)
+      (print ln))
     (when (= (len at-list) me.K)
-      (me.you-win))
+      (me.you-win :quiet quiet))
     (when (= me.cnt me.nturn)
       (me.you-lose "out of turns"))
     (, at-list in-list out-list))
 
   (defn still-playing? [me] (= me.state 'play))
 
-  (defn you-win [me]
+  (defn turns [me] (return me.cnt))
+
+  (defn you-win [me &optional [quiet False]]
     (sv me.state 'win)
-    (print "win" me.cnt))
+    (unless quiet (print "win" me.cnt)))
   
   (defn you-lose [me msg]
     (sv me.state 'lose)
@@ -144,3 +148,23 @@
 
 (when-inp ["play" {:idx int}]
   (play idx))
+
+;; play every game and sort by number of turns.
+(when-inp ["stats"]
+  (sv c (get-context)
+      d-v (get-valid-word-list (:word-file c))
+      d-v (sort-by-letter-score d-v)
+      stats [])
+  (print (len d-v))
+  (for [i (range (len d-v))]
+    (sv word (get d-v i)
+        g (Game d-v word)
+        p (Player d-v))
+    (while (g.still-playing?)
+      (sv word (p.turn)
+          out (g.input word :quiet True))
+      (p.inform #*out))
+    (.append stats (, word (g.turns))))
+  (.sort stats :key second)
+  (for [s stats]
+    (print (first s) (second s))))

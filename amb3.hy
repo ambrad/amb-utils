@@ -131,6 +131,23 @@
 (defmacro list-comp [transform range]
   `(lfor ~(first range) ~(second range) ~transform))
 
+;; Inject the variable(s) first? or last?.
+(defmacro/g! for-last [it &rest body]
+  `(do
+     (setv ~g!last (first (last (enumerate ~(second it)))))
+     (for [(, ~g!i ~(first it)) (enumerate ~(second it))]
+       (setv last? (= ~g!i ~g!last))
+       ~@body)))
+
+(defmacro/g! for-first-last [it &rest body]
+  `(do
+     (setv ~g!first (first (first (enumerate ~(second it))))
+           ~g!last (first (last (enumerate ~(second it)))))
+     (for [(, ~g!i ~(first it)) (enumerate ~(second it))]
+       (setv first? (= ~g!i ~g!first))
+       (setv last? (= ~g!i ~g!last))
+       ~@body)))
+
 ;; Use this instead of macroexpand to get output stripped of the Hy object
 ;; ctors.
 (defn ppme [quoted-form]
@@ -183,6 +200,7 @@
 (defn list? [coll] (= (type coll) list))
 (defn tuple? [coll] (= (type coll) tuple))
 (defn dict? [coll] (= (type coll) dict))
+(defn penult [coll] (get coll -2))
 
 (defmacro/g! box-slots [&rest slots]
   "Example: (setv hi 3 bye \"so long\" b (box-slots 'hi 'bye))"
@@ -338,6 +356,11 @@
   (/ (sum (map (fn [e] (** (- e mu) 2)) coll))
      (len coll)))
 
+(defn cumsum [coll]
+  (setv c (list (copy.deepcopy coll)))
+  (for [i (range 1 (len c))] (+= (get c i) (nth c (dec i))))
+  c)
+
 (defn cross-prod [x y]
   (defn one [i0 i1]
     (- (* (get x i0) (get y i1)) (* (get x i1) (get y i0))))
@@ -346,6 +369,9 @@
 (defn readall [filename]
   (with [f (open filename "r")]
     (f.read)))
+
+(defn readtxt [filename]
+  (.split (readall filename) "\n"))
 
 (defn grep-str [pattern str]
   (import re)
@@ -378,7 +404,7 @@
    (except [e Exception]
      (print ln))))
 
-(defn ooa [y &optional [xfac 2] [x None]]
+(defn calc-ooa [y &optional [xfac 2] [x None]]
   (setv r [])
   (for [i (range (dec (len y)))]
     (.append r (/ (- (math.log (get y i)) (math.log (get y (inc i))))
@@ -749,6 +775,16 @@
     (pl.plot #*[x y pattern] #**kwargs-plot)
     (pl.text #*[(+ x0 (* 0.1 dx)) (+ y0 (* 0.1 dy)) (str slope)]
              #**kwargs-text))
+
+  (defn frame-init []
+    (pl.show :block False))
+  (defn frame-flip [U &optional [clim None] [pause 0.05]]
+    (pl.clf)
+    (pl.imshow U :interpolation "none" :origin "lower")
+    (unless (none? clim)
+      (pl.clim clim))
+    (pl.tight-layout)
+    (pl.pause pause))
 
   ) (except [] ))
 

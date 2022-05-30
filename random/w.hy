@@ -4,7 +4,7 @@
 (defn get-context []
   {:word-file "/usr/share/dict/words"})
 
-(defn get-valid-word-list [word-file &optional [wlen 6]]
+(defn get-valid-word-list [word-file &optional [wlen 5]]
   (sv d-all (.split (readall word-file) "\n")
       d-v [])
   (for [w d-all]
@@ -143,13 +143,15 @@
   (sv c (get-context)
       d-v (get-valid-word-list (:word-file c))
       d-v (sort-by-letter-score d-v :verbose True))
-  (print (cut d-v 0 100))
-  (print (cut d-v -100 None)))
+  (for [w d-v]
+    (print w)))
 
 (when-inp ["play" {:idx int}]
   (play idx))
 
 ;; play every game and sort by number of turns.
+;; hy w.hy stats > stats.txt
+;; for i in $(seq 1 20); do cnt=`grep " $i$" stats.txt | wc -l`; printf "%2d %-4d\n" $i $cnt; done
 (when-inp ["stats"]
   (sv c (get-context)
       d-v (get-valid-word-list (:word-file c))
